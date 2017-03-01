@@ -35,7 +35,7 @@ namespace Joueur.cs.Games.Chess
         /// <returns>string of you AI's name.</returns>
         public override string GetName()
         {
-            return "Chess C# Player"; // REPLACE THIS WITH YOUR TEAM NAME!
+            return "Waffle";
         }
 
         /// <summary>
@@ -112,63 +112,38 @@ namespace Joueur.cs.Games.Chess
         /// <summary>
         /// Prints the current board using pretty ASCII art
         /// </summary>
-        /// <remarks>
-        /// Note: you can delete this function if you wish
-        /// </remarks>
         public void PrintCurrentBoard()
         {
-            for (int rank = 9; rank >= -1; rank--)
+            var dispPieceTile = new Dictionary<string, char>();
+            foreach (var piece in this.Game.Pieces)
             {
-                string str = "";
-                if (rank == 9 || rank == 0) // then the top or bottom of the board
+                char tile = (piece.Type == "Knight") ? 'N' : piece.Type[0];
+                if (piece.Owner.Id == "1")
                 {
-                    str = "   +------------------------+";
+                    tile = Char.ToLower(tile);
                 }
-                else if (rank == -1) // then show the ranks
+                dispPieceTile[piece.File + piece.Rank] = tile;
+            }
+
+            Console.WriteLine("   +------------------------+");
+            for (int rank = 8; rank >= 1; rank--)
+            {
+                string str = " " + rank + " |";
+                for (int fileOffset = 0; fileOffset < 8; fileOffset++)
                 {
-                    str = "     a  b  c  d  e  f  g  h";
-                }
-                else // board
-                {
-                    str += " " + rank + " |";
-                    // fill in all the files with pieces at the current rank
-                    for (int fileOffset = 0; fileOffset < 8; fileOffset++)
+                    string file = ((char)('a' + fileOffset)).ToString();
+                    char tile;
+                    if (!dispPieceTile.TryGetValue(file + rank, out tile))
                     {
-                        string file = "" + (char)(((int)"a"[0]) + fileOffset); // start at a, with with file offset increasing the char;
-                        Piece currentPiece = null;
-                        foreach (var piece in this.Game.Pieces)
-                        {
-                            if (piece.File == file && piece.Rank == rank) // then we found the piece at (file, rank)
-                            {
-                                currentPiece = piece;
-                                break;
-                            }
-                        }
-
-                        char code = '.'; // default "no piece";
-                        if (currentPiece != null)
-                        {
-                            code = currentPiece.Type[0];
-
-                            if (currentPiece.Type == "Knight") // 'K' is for "King", we use 'N' for "Knights"
-                            {
-                                code = 'N';
-                            }
-
-                            if (currentPiece.Owner.Id == "1") // the second player (black) is lower case. Otherwise it's upppercase already
-                            {
-                                code = Char.ToLower(code);
-                            }
-                        }
-
-                        str += " " + code + " ";
+                        tile = '.';
                     }
-
-                    str += "|";
+                    str += " " + tile + " ";
                 }
-
+                str += "|";
                 Console.WriteLine(str);
             }
+            Console.WriteLine("   +------------------------+");
+            Console.WriteLine("     a  b  c  d  e  f  g  h");
         }
 
         #endregion
