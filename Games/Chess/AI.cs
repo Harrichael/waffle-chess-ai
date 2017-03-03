@@ -84,7 +84,8 @@ namespace Joueur.cs.Games.Chess
         public bool RunTurn()
         {
             this.PrintCurrentBoard();
-            if (this.Game.Moves.Count > 0) {
+            if (this.Game.Moves.Count > 0)
+            {
                 Console.WriteLine("Opponent's Last Move: '" + this.Game.Moves.Last().San + "'");
             }
             Console.WriteLine("Time Remaining: " + this.Player.TimeRemaining + " ns");
@@ -107,7 +108,7 @@ namespace Joueur.cs.Games.Chess
             var rand = new Random();
             var randomPiece = this.Player.Pieces[rand.Next(this.Player.Pieces.Count)];
             var action = new XAction();
-            action.srcTile = (UInt64)(1 << (randomPiece.File[0] - 'a') + 8*(randomPiece.Rank - '0') );
+            action.srcTile = (UInt64)(1 << (7-(int)(randomPiece.File[0] - 'a') + 8*(randomPiece.Rank - '1')) );
             action.destTile = (UInt64)(1 << rand.Next(0, 64));
 
             return action;
