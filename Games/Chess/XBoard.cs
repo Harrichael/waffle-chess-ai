@@ -26,6 +26,10 @@ public class XBoard
     public UInt64 open;
 
     public bool turnIsWhite;
+    public bool whiteCastleKS;
+    public bool whiteCastleQS;
+    public bool blackCastleKS;
+    public bool blackCastleQS;
     public UInt64 enPassTile;
 
     public XBoard()
@@ -74,6 +78,15 @@ static class ChessRules
 
     private static readonly UInt64 NotAFile = ~AFile;
     private static readonly UInt64 NotHFile = ~HFile;
+
+    private static readonly UInt64 whiteKSSpace = 0x0000000000000060;
+    private static readonly UInt64 whiteKSDest  = 0x0000000000000002;
+    private static readonly UInt64 whiteQSSpace = 0x0000000000000070;
+    private static readonly UInt64 whiteQSDest  = 0x0000000000000020;
+    private static readonly UInt64 blackKSSpace = 0x6000000000000000;
+    private static readonly UInt64 blackKSDest  = 0x0200000000000000;
+    private static readonly UInt64 blackQSSpace = 0x7000000000000000;
+    private static readonly UInt64 blackQSDest  = 0x2000000000000000;
 
     public static UInt64 MSB(UInt64 input)
     {
@@ -251,6 +264,28 @@ static class ChessRules
                 neighbors.Add( new XAction(king, kingAttack) );
             }
         } // End King
+        { // Castling
+            if (state.turnIsWhite)
+            {
+                if (state.whiteCastleKS && ((state.open & whiteKSSpace) == whiteKSSpace))
+                {
+                    neighbors.Add( new XAction(state.whiteKing, whiteKSDest) );
+                }
+                if (state.whiteCastleQS && ((state.open & whiteQSSpace) == whiteQSSpace))
+                {
+                    neighbors.Add( new XAction(state.whiteKing, whiteQSDest) );
+                }
+            } else {
+                if (state.blackCastleKS && ((state.open & blackKSSpace) == blackKSSpace))
+                {
+                    neighbors.Add( new XAction(state.blackKing, blackKSDest) );
+                }
+                if (state.blackCastleQS && ((state.open & blackQSSpace) == blackQSSpace))
+                {
+                    neighbors.Add( new XAction(state.blackKing, blackQSDest) );
+                }
+            }
+        } // End Castling
         { // Handle Rooks and QueenRooks
             UInt64 opponentPieces;
             UInt64 rooks;
@@ -280,32 +315,32 @@ static class ChessRules
                 while((rookAttack & validMove) != 0)
                 {
                     rookAttacks = rookAttacks | rookAttack;
-                    rookAttack = rookAttack << 8;
                     if ((rookAttack & opponentPieces) != 0) break;
+                    rookAttack = rookAttack << 8;
                 }
                 // down
                 rookAttack = rook >> 8;
                 while((rookAttack & validMove) != 0)
                 {
                     rookAttacks = rookAttacks | rookAttack;
-                    rookAttack = rookAttack >> 8;
                     if ((rookAttack & opponentPieces) != 0) break;
+                    rookAttack = rookAttack >> 8;
                 }
                 // left
                 rookAttack = rook << 1;
                 while((rookAttack & validMove & NotHFile) != 0)
                 {
                     rookAttacks = rookAttacks | rookAttack;
-                    rookAttack = rookAttack << 1;
                     if ((rookAttack & opponentPieces) != 0) break;
+                    rookAttack = rookAttack << 1;
                 }
                 // right
                 rookAttack = rook >> 1;
                 while((rookAttack & validMove & NotAFile) != 0)
                 {
                     rookAttacks = rookAttacks | rookAttack;
-                    rookAttack = rookAttack >> 1;
                     if ((rookAttack & opponentPieces) != 0) break;
+                    rookAttack = rookAttack >> 1;
                 }
 
                 while(rookAttacks != 0)
@@ -345,32 +380,32 @@ static class ChessRules
                 while((bishopAttack & validMove & NotHFile) != 0)
                 {
                     bishopAttacks = bishopAttacks | bishopAttack;
-                    bishopAttack = bishopAttack << 9;
                     if ((bishopAttack & opponentPieces) != 0) break;
+                    bishopAttack = bishopAttack << 9;
                 }
                 // upright
                 bishopAttack = bishop << 7;
                 while((bishopAttack & validMove & NotAFile) != 0)
                 {
                     bishopAttacks = bishopAttacks | bishopAttack;
-                    bishopAttack = bishopAttack << 7;
                     if ((bishopAttack & opponentPieces) != 0) break;
+                    bishopAttack = bishopAttack << 7;
                 }
                 // downleft
                 bishopAttack = bishop >> 7;
                 while((bishopAttack & validMove & NotHFile) != 0)
                 {
                     bishopAttacks = bishopAttacks | bishopAttack;
-                    bishopAttack = bishopAttack >> 7;
                     if ((bishopAttack & opponentPieces) != 0) break;
+                    bishopAttack = bishopAttack >> 7;
                 }
                 // downright
                 bishopAttack = bishop >> 9;
                 while((bishopAttack & validMove & NotAFile) != 0)
                 {
                     bishopAttacks = bishopAttacks | bishopAttack;
-                    bishopAttack = bishopAttack >> 9;
                     if ((bishopAttack & opponentPieces) != 0) break;
+                    bishopAttack = bishopAttack >> 9;
                 }
 
                 while(bishopAttacks != 0)
