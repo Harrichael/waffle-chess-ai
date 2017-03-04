@@ -168,6 +168,7 @@ namespace Joueur.cs.Games.Chess
                 }
             }
             state.turnIsWhite = this.Game.CurrentPlayer.Color == "White";
+            state.enPassTile = this.rfToTile(this.Game.Fen.Split(' ')[3]);
             state.updatePieces();
             return state;
         }
@@ -179,6 +180,7 @@ namespace Joueur.cs.Games.Chess
         {
             switch (rf)
             {
+                case "-": return 0;
                 case "h1": return 1;
                 case "g1": return 2;
                 case "f1": return 4;

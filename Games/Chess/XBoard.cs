@@ -26,6 +26,7 @@ public class XBoard
     public UInt64 open;
 
     public bool turnIsWhite;
+    public UInt64 enPassTile;
 
     public XBoard()
     {
@@ -119,6 +120,7 @@ static class ChessRules
         var neighbors = new List<XAction>();
         { // Handle Pawns
             UInt64 pawns;
+            UInt64 attackTiles;
             UInt64 pawnsNotAFile;
             UInt64 pawnsNotHFile;
             UInt64 pawnAdvances;
@@ -137,6 +139,7 @@ static class ChessRules
             if (state.turnIsWhite)
             {
                 pawns = state.whitePawns;
+                attackTiles = state.blackPieces | state.enPassTile;
                 pawnsNotAFile = pawns & NotAFile;
                 pawnsNotHFile = pawns & NotHFile;
 
@@ -145,14 +148,15 @@ static class ChessRules
                 dPawnAdvances = ((advancingPawns & Rank2) << 16) & state.open;
                 dAdvancingPawns = pawns & (dPawnAdvances >> 16);
 
-                pawnLeftAttacks = (pawnsNotAFile << 9) & state.blackPieces;
+                pawnLeftAttacks = (pawnsNotAFile << 9) & attackTiles;
                 attackingLeftPawns = pawns & (pawnLeftAttacks >> 9);
-                pawnRightAttacks = (pawnsNotHFile << 7) & state.blackPieces;
+                pawnRightAttacks = (pawnsNotHFile << 7) & attackTiles;
                 attackingRightPawns = pawns & (pawnRightAttacks >> 7);
             }
             else
             {
                 pawns = state.blackPawns;
+                attackTiles = state.whitePieces | state.enPassTile;
                 pawnsNotAFile = pawns & NotAFile;
                 pawnsNotHFile = pawns & NotHFile;
 
@@ -161,9 +165,9 @@ static class ChessRules
                 dPawnAdvances = ((advancingPawns & Rank7) >> 16) & state.open;
                 dAdvancingPawns = pawns & (dPawnAdvances << 16);
 
-                pawnLeftAttacks = (pawnsNotAFile >> 7) & state.whitePieces;
+                pawnLeftAttacks = (pawnsNotAFile >> 7) & attackTiles;
                 attackingLeftPawns = pawns & (pawnLeftAttacks << 7);
-                pawnRightAttacks = (pawnsNotHFile >> 9) & state.whitePieces;
+                pawnRightAttacks = (pawnsNotHFile >> 9) & attackTiles;
                 attackingRightPawns = pawns & (pawnRightAttacks << 9);
             }
 
@@ -177,7 +181,7 @@ static class ChessRules
                 dest = MSB(tempDest);
                 while(src != 0)
                 {
-                    if ( (dest & Rank1 | dest & Rank8) == 0)
+                    if ( (dest & (Rank1 | Rank8)) == 0)
                     {
                         neighbors.Add( new XAction(src, dest) );
                     } else {
@@ -186,14 +190,14 @@ static class ChessRules
                         neighbors.Add( new XAction(src, dest, "Bishop") );
                         neighbors.Add( new XAction(src, dest, "Rook") );
                     }
-    
+
                     tempSrc = tempSrc - src;
                     tempDest = tempDest - dest;
                     src = MSB(tempSrc);
                     dest = MSB(tempDest);
                 }
             }
-        }
+        } // End Pawns
 
         return neighbors;
     }
