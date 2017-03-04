@@ -8,14 +8,21 @@ public class XAction
     public UInt64 srcTile;
     public UInt64 destTile;
     public PieceType pieceType;
+    public PieceType attackType;
     public string promotionType;
 
     public XAction() {}
-    public XAction(UInt64 src, UInt64 dest, PieceType type, string promote="")
+    public XAction( UInt64 src,
+                    UInt64 dest,
+                    PieceType type,
+                    PieceType attack=PieceType.None,
+                    string promote=""
+                  )
     {
         this.srcTile = src;
         this.destTile = dest;
         this.pieceType = type;
+        this.attackType = attack;
         this.promotionType = promote;
     }
 

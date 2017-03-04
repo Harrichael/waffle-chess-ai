@@ -6,7 +6,7 @@ using System.Linq;
 public enum PieceType 
 {
     // Castle is included for ease of use
-    Pawn, Rook, Knight, Bishop, Queen, King, Castle
+    Pawn, Rook, Knight, Bishop, Queen, King, Castle, EnPass, None
 };
 
 public static class ChessRules
@@ -106,6 +106,32 @@ public static class ChessRules
     {
         var neighbors = new List<XAction>();
         var invalidNeighbors = new HashSet<XAction>();
+        var opponentPT = new Dictionary<UInt64, PieceType>();
+        { // Precompute an opponent piece type dict
+            var pieceBBs = new List<UInt64>();
+            PieceType[] pts = {PieceType.Pawn, PieceType.Rook, PieceType.Knight, PieceType.Bishop, PieceType.Queen, PieceType.King};
+            UInt64 pieces;
+            UInt64 piece;
+            if (state.turnIsWhite)
+            {
+                UInt64[] bbs = {state.blackPawns, state.blackRooks, state.blackKnights, state.blackBishops, state.blackQueens, state.blackKing};
+                pieceBBs.AddRange(bbs);
+            } else {
+                UInt64[] bbs = {state.whitePawns, state.whiteRooks, state.whiteKnights, state.whiteBishops, state.whiteQueens, state.whiteKing};
+                pieceBBs.AddRange(bbs);
+            }
+            for (var i = 0; i < 6; i++)
+            {
+                pieces = pieceBBs[i];
+                while(pieces != 0)
+                {
+                    piece = MSB(pieces);
+                    pieces = pieces - piece;
+                    opponentPT[piece] = pts[i];
+                }
+            }
+            opponentPT[state.enPassTile] = PieceType.EnPass;
+        } // End precomputation
         { // Handle Pawns
             UInt64 pawns;
             UInt64 pawnAdvances;
@@ -170,12 +196,25 @@ public static class ChessRules
                     tempDest = tempDest - dest;
                     if ( (dest & (Rank1 | Rank8)) == 0)
                     {
-                        neighbors.Add( new XAction(src, dest, PieceType.Pawn) );
+                        if (i > 1)
+                        {
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, attack:opponentPT[dest]) );
+                        } else {
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn) );
+                        }
                     } else {
-                        neighbors.Add( new XAction(src, dest, PieceType.Pawn, "Queen") );
-                        neighbors.Add( new XAction(src, dest, PieceType.Pawn, "Knight") );
-                        neighbors.Add( new XAction(src, dest, PieceType.Pawn, "Bishop") );
-                        neighbors.Add( new XAction(src, dest, PieceType.Pawn, "Rook") );
+                        if (i > 1)
+                        {
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:"Queen") );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:"Knight") );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:"Bishop") );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:"Rook") );
+                        } else {
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:"Queen") );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:"Knight") );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:"Bishop") );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:"Rook") );
+                        }
                     }
 
                 }
