@@ -80,7 +80,9 @@ namespace Joueur.cs.Games.Chess
         /// <summary>
         /// This is called every time it is this AI.player's turn.
         /// </summary>
-        /// <returns>Represents if you want to end your turn. True means end your turn, False means to keep your turn going and re-call this function.</returns>
+        /// <returns>Represents if you want to end your turn.
+        /// True means end your turn, False means to keep your turn 
+        /// going and re-call this function.</returns>
         public bool RunTurn()
         {
             this.PrintCurrentBoard();
@@ -95,7 +97,7 @@ namespace Joueur.cs.Games.Chess
             var srcRF = this.tileToRF(action.srcTile);
             var piece = this.Player.Pieces.First(p => (p.File + p.Rank) == srcRF);
             var destRF = this.tileToRF(action.destTile);
-            piece.Move("" + destRF[0], (int)(destRF[1] - '0'));
+            piece.Move("" + destRF[0], (int)(destRF[1] - '0'), action.promotionType);
 
             return true;
         }
@@ -106,12 +108,144 @@ namespace Joueur.cs.Games.Chess
         private XAction getTurnAction()
         {
             var rand = new Random();
-            var randomPiece = this.Player.Pieces[rand.Next(this.Player.Pieces.Count)];
-            var action = new XAction();
-            action.srcTile = (UInt64)(1 << (7-(int)(randomPiece.File[0] - 'a') + 8*(randomPiece.Rank - '1')) );
-            action.destTile = (UInt64)(1 << rand.Next(0, 64));
 
-            return action;
+            var state = this.createState();
+            var actions = ChessRules.LegalMoves(state);
+            return actions[rand.Next(actions.Count)];
+        }
+
+        /// <summary>
+        /// This function is called once a turn to transform Joueur API into our chess representation
+        /// </summary>
+        XBoard createState()
+        {
+            var state = new XBoard();
+            foreach (var piece in this.Game.Pieces)
+            {
+                var tile = this.rfToTile(piece.File + piece.Rank);
+                switch (piece.Owner.Id)
+                {
+                    // black
+                    case "1":
+                        switch (piece.Type)
+                        {
+                            case "Pawn":
+                               state.blackPawns |= tile; break;
+                            case "Rook":
+                               state.blackRooks |= tile; break;
+                            case "Knight":
+                               state.blackKnights |= tile; break;
+                            case "Bishop":
+                               state.blackBishops |= tile; break;
+                            case "Queen":
+                               state.blackQueens |= tile; break;
+                            case "King":
+                               state.blackKing = tile; break;
+                            default:
+                                throw new System.Exception("We had an invalid piece type here");
+                        }
+                    break;
+                    // white
+                    default:
+                        switch (piece.Type)
+                        {
+                            case "Pawn":
+                               state.whitePawns |= tile; break;
+                            case "Rook":
+                               state.whiteRooks |= tile; break;
+                            case "Knight":
+                               state.whiteKnights |= tile; break;
+                            case "Bishop":
+                               state.whiteBishops |= tile; break;
+                            case "Queen":
+                               state.whiteQueens |= tile; break;
+                            case "King":
+                               state.whiteKing = tile; break;
+                            default:
+                                throw new System.Exception("We had an invalid piece type here");
+                        }
+                    break;
+                }
+            }
+            state.turnIsWhite = this.Game.CurrentPlayer.Color == "White";
+            state.updatePieces();
+            return state;
+        }
+
+        /// <summary>
+        /// Helper for creating state, reverse of tileToRF
+        /// </summary>
+        private UInt64 rfToTile(string rf)
+        {
+            switch (rf)
+            {
+                case "h1": return 1;
+                case "g1": return 2;
+                case "f1": return 4;
+                case "e1": return 8;
+                case "d1": return 16;
+                case "c1": return 32;
+                case "b1": return 64;
+                case "a1": return 128;
+                case "h2": return 256;
+                case "g2": return 512;
+                case "f2": return 1024;
+                case "e2": return 2048;
+                case "d2": return 4096;
+                case "c2": return 8192;
+                case "b2": return 16384;
+                case "a2": return 32768;
+                case "h3": return 65536;
+                case "g3": return 131072;
+                case "f3": return 262144;
+                case "e3": return 524288;
+                case "d3": return 1048576;
+                case "c3": return 2097152;
+                case "b3": return 4194304;
+                case "a3": return 8388608;
+                case "h4": return 16777216;
+                case "g4": return 33554432;
+                case "f4": return 67108864;
+                case "e4": return 134217728;
+                case "d4": return 268435456;
+                case "c4": return 536870912;
+                case "b4": return 1073741824;
+                case "a4": return 2147483648;
+                case "h5": return 4294967296;
+                case "g5": return 8589934592;
+                case "f5": return 17179869184;
+                case "e5": return 34359738368;
+                case "d5": return 68719476736;
+                case "c5": return 137438953472;
+                case "b5": return 274877906944;
+                case "a5": return 549755813888;
+                case "h6": return 1099511627776;
+                case "g6": return 2199023255552;
+                case "f6": return 4398046511104;
+                case "e6": return 8796093022208;
+                case "d6": return 17592186044416;
+                case "c6": return 35184372088832;
+                case "b6": return 70368744177664;
+                case "a6": return 140737488355328;
+                case "h7": return 281474976710656;
+                case "g7": return 562949953421312;
+                case "f7": return 1125899906842624;
+                case "e7": return 2251799813685248;
+                case "d7": return 4503599627370496;
+                case "c7": return 9007199254740992;
+                case "b7": return 18014398509481984;
+                case "a7": return 36028797018963968;
+                case "h8": return 72057594037927936;
+                case "g8": return 144115188075855872;
+                case "f8": return 288230376151711744;
+                case "e8": return 576460752303423488;
+                case "d8": return 1152921504606846976;
+                case "c8": return 2305843009213693952;
+                case "b8": return 4611686018427387904;
+                case "a8": return 9223372036854775808;
+            }
+            Console.WriteLine("Invalid RF: " + rf);
+            throw new System.Exception();
         }
 
         /// <summary>
@@ -186,7 +320,8 @@ namespace Joueur.cs.Games.Chess
                 case 4611686018427387904: return "b8";
                 case 9223372036854775808: return "a8";
             }
-            throw new System.IndexOutOfRangeException("We had an invalid tile here");
+            Console.WriteLine("Invalid tile: " + tile);
+            throw new System.Exception();
         }
 
         /// <summary>

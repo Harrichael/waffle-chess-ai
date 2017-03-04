@@ -7,23 +7,14 @@ public class XAction
 {
     public UInt64 srcTile;
     public UInt64 destTile;
+    public string promotionType;
+
+    public XAction() {}
+    public XAction(UInt64 src, UInt64 dest, string promote="")
+    {
+        this.srcTile = src;
+        this.destTile = dest;
+        this.promotionType = promote;
+    }
 }
 
-/*
-public class XBoard
-{
-    UInt64 whitePawns;
-    UInt64 whiteRooks;
-    UInt64 whiteKnights;
-    UInt64 whiteBishops;
-    UInt64 whiteQueens;
-    UInt64 whiteKing;
-
-    UInt64 blackPawns;
-    UInt64 blackRooks;
-    UInt64 blackKnights;
-    UInt64 blackBishops;
-    UInt64 blackQueens;
-    UInt64 blackKing;
-}
-*/
