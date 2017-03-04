@@ -109,18 +109,18 @@ public static class ChessRules
         var opponentPT = new Dictionary<UInt64, PieceType>();
         { // Precompute an opponent piece type dict
             var pieceBBs = new List<UInt64>();
-            PieceType[] pts = {PieceType.Pawn, PieceType.Rook, PieceType.Knight, PieceType.Bishop, PieceType.Queen, PieceType.King};
+            PieceType[] pts = {PieceType.Pawn, PieceType.Rook, PieceType.Knight, PieceType.Bishop, PieceType.Queen};
             UInt64 pieces;
             UInt64 piece;
             if (state.turnIsWhite)
             {
-                UInt64[] bbs = {state.blackPawns, state.blackRooks, state.blackKnights, state.blackBishops, state.blackQueens, state.blackKing};
+                UInt64[] bbs = {state.blackPawns, state.blackRooks, state.blackKnights, state.blackBishops, state.blackQueens};
                 pieceBBs.AddRange(bbs);
             } else {
-                UInt64[] bbs = {state.whitePawns, state.whiteRooks, state.whiteKnights, state.whiteBishops, state.whiteQueens, state.whiteKing};
+                UInt64[] bbs = {state.whitePawns, state.whiteRooks, state.whiteKnights, state.whiteBishops, state.whiteQueens};
                 pieceBBs.AddRange(bbs);
             }
-            for (var i = 0; i < 6; i++)
+            for (var i = 0; i < 5; i++)
             {
                 pieces = pieceBBs[i];
                 while(pieces != 0)
@@ -521,6 +521,24 @@ public static class ChessRules
                     }
                 break;
             }
+            switch (action.attackType)
+            {
+                case PieceType.Pawn:
+                    state.blackPawns = state.blackPawns & ~action.destTile;
+                break;
+                case PieceType.Rook:
+                    state.blackRooks = state.blackRooks & ~action.destTile;
+                break;
+                case PieceType.Knight:
+                    state.blackKnights = state.blackKnights & ~action.destTile;
+                break;
+                case PieceType.Bishop:
+                    state.blackBishops = state.blackBishops & ~action.destTile;
+                break;
+                case PieceType.Queen:
+                    state.blackQueens = state.blackQueens & ~action.destTile;
+                break;
+            }
         } else {
             switch (action.pieceType)
             {
@@ -551,6 +569,24 @@ public static class ChessRules
                         state.blackKing = blackQSDest;
                         state.blackRooks = (state.blackRooks & ~blackQSRookStart) | blackQSRookDest;
                     }
+                break;
+            }
+            switch (action.attackType)
+            {
+                case PieceType.Pawn:
+                    state.whitePawns = state.whitePawns & ~action.destTile;
+                break;
+                case PieceType.Rook:
+                    state.whiteRooks = state.whiteRooks & ~action.destTile;
+                break;
+                case PieceType.Knight:
+                    state.whiteKnights = state.whiteKnights & ~action.destTile;
+                break;
+                case PieceType.Bishop:
+                    state.whiteBishops = state.whiteBishops & ~action.destTile;
+                break;
+                case PieceType.Queen:
+                    state.whiteQueens = state.whiteQueens & ~action.destTile;
                 break;
             }
         }
@@ -590,6 +626,24 @@ public static class ChessRules
                     }
                 break;
             }
+            switch (action.attackType)
+            {
+                case PieceType.Pawn:
+                    state.blackPawns = state.blackPawns | action.destTile;
+                break;
+                case PieceType.Rook:
+                    state.blackRooks = state.blackRooks | action.destTile;
+                break;
+                case PieceType.Knight:
+                    state.blackKnights = state.blackKnights | action.destTile;
+                break;
+                case PieceType.Bishop:
+                    state.blackBishops = state.blackBishops | action.destTile;
+                break;
+                case PieceType.Queen:
+                    state.blackQueens = state.blackQueens | action.destTile;
+                break;
+            }
         } else {
             switch (action.pieceType)
             {
@@ -619,6 +673,24 @@ public static class ChessRules
                     } else {
                         state.blackRooks = (state.blackRooks & ~blackQSRookDest) | blackQSRookStart;
                     }
+                break;
+            }
+            switch (action.attackType)
+            {
+                case PieceType.Pawn:
+                    state.whitePawns = state.whitePawns | action.destTile;
+                break;
+                case PieceType.Rook:
+                    state.whiteRooks = state.whiteRooks | action.destTile;
+                break;
+                case PieceType.Knight:
+                    state.whiteKnights = state.whiteKnights | action.destTile;
+                break;
+                case PieceType.Bishop:
+                    state.whiteBishops = state.whiteBishops | action.destTile;
+                break;
+                case PieceType.Queen:
+                    state.whiteQueens = state.whiteQueens | action.destTile;
                 break;
             }
         }
