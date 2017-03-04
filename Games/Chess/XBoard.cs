@@ -52,6 +52,12 @@ public class XBoard
         this.open = ~this.pieces;
     }
 
+    public void minorUpdate()
+    {
+        this.pieces = this.whitePieces | this.blackPieces;
+        this.open = ~this.pieces;
+    }
+
     public XBoard Copy()
     {
         return (XBoard)this.MemberwiseClone();
