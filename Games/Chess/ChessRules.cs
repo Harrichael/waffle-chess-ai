@@ -205,10 +205,10 @@ public static class ChessRules
                     } else {
                         if (i > 1)
                         {
-                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:"Queen") );
-                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:"Knight") );
-                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:"Bishop") );
-                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:"Rook") );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, attack:opponentPT[dest], promote:"Queen") );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, attack:opponentPT[dest], promote:"Knight") );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, attack:opponentPT[dest], promote:"Bishop") );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, attack:opponentPT[dest], promote:"Rook") );
                         } else {
                             neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:"Queen") );
                             neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:"Knight") );
@@ -245,7 +245,12 @@ public static class ChessRules
                 {
                     knightAttack = MSB(knightAttacks);
                     knightAttacks = knightAttacks - knightAttacks;
-                    neighbors.Add( new XAction(knight, knightAttack, PieceType.Knight) );
+                    if ((knightAttack & opponentPieces) != 0)
+                    {
+                        neighbors.Add( new XAction(knight, knightAttack, PieceType.Knight, attack:opponentPT[knightAttack]) );
+                    } else {
+                        neighbors.Add( new XAction(knight, knightAttack, PieceType.Knight) );
+                    }
                 }
             }
 
@@ -269,7 +274,12 @@ public static class ChessRules
             {
                 kingAttack = MSB(kingAttacks);
                 kingAttacks = kingAttacks - kingAttack;
-                neighbors.Add( new XAction(king, kingAttack, PieceType.King) );
+                if ((kingAttack & opponentPieces) != 0)
+                {
+                    neighbors.Add( new XAction(king, kingAttack, PieceType.King, attack:opponentPT[kingAttack]) );
+                } else {
+                    neighbors.Add( new XAction(king, kingAttack, PieceType.King) );
+                }
             }
         } // End King
         { // Handle Castling
@@ -361,7 +371,12 @@ public static class ChessRules
                 {
                     rookAttack = MSB(rookAttacks);
                     rookAttacks = rookAttacks - rookAttack;
-                    neighbors.Add( new XAction(rook, rookAttack, ( ((rook & realRooks) != 0) ? PieceType.Rook : PieceType.Queen ) ) );
+                    if ((rookAttack & opponentPieces) != 0)
+                    {
+                        neighbors.Add( new XAction(rook, rookAttack, ( ((rook & realRooks) != 0) ? PieceType.Rook : PieceType.Queen ), attack:opponentPT[rookAttack] ) );
+                    } else {
+                        neighbors.Add( new XAction(rook, rookAttack, ( ((rook & realRooks) != 0) ? PieceType.Rook : PieceType.Queen ) ) );
+                    }
                 }
             }
         } // End Rooks and QueenRooks
@@ -429,7 +444,12 @@ public static class ChessRules
                 {
                     bishopAttack = MSB(bishopAttacks);
                     bishopAttacks = bishopAttacks - bishopAttack;
-                    neighbors.Add( new XAction(bishop, bishopAttack, ( ((bishop & realBishops) != 0) ? PieceType.Bishop : PieceType.Queen ) ) );
+                    if ((bishopAttack & opponentPieces) != 0)
+                    {
+                        neighbors.Add( new XAction(bishop, bishopAttack, ( ((bishop & realBishops) != 0) ? PieceType.Bishop : PieceType.Queen ), attack:opponentPT[bishopAttack] ) );
+                    } else {
+                        neighbors.Add( new XAction(bishop, bishopAttack, ( ((bishop & realBishops) != 0) ? PieceType.Bishop : PieceType.Queen ) ) );
+                    }
                 }
             }
         } // End Bishops and QueenBishops
