@@ -120,9 +120,6 @@ static class ChessRules
         var neighbors = new List<XAction>();
         { // Handle Pawns
             UInt64 pawns;
-            UInt64 attackTiles;
-            UInt64 pawnsNotAFile;
-            UInt64 pawnsNotHFile;
             UInt64 pawnAdvances;
             UInt64 advancingPawns;
             UInt64 dPawnAdvances;
@@ -139,9 +136,9 @@ static class ChessRules
             if (state.turnIsWhite)
             {
                 pawns = state.whitePawns;
-                attackTiles = state.blackPieces | state.enPassTile;
-                pawnsNotAFile = pawns & NotAFile;
-                pawnsNotHFile = pawns & NotHFile;
+                var attackTiles = state.blackPieces | state.enPassTile;
+                var pawnsNotAFile = pawns & NotAFile;
+                var pawnsNotHFile = pawns & NotHFile;
 
                 pawnAdvances = (pawns << 8) & state.open;
                 advancingPawns = pawns & (pawnAdvances >> 8);
@@ -156,9 +153,9 @@ static class ChessRules
             else
             {
                 pawns = state.blackPawns;
-                attackTiles = state.whitePieces | state.enPassTile;
-                pawnsNotAFile = pawns & NotAFile;
-                pawnsNotHFile = pawns & NotHFile;
+                var attackTiles = state.whitePieces | state.enPassTile;
+                var pawnsNotAFile = pawns & NotAFile;
+                var pawnsNotHFile = pawns & NotHFile;
 
                 pawnAdvances = (pawns >> 8) & state.open;
                 advancingPawns = pawns & (pawnAdvances << 8);
@@ -177,10 +174,12 @@ static class ChessRules
             {
                 tempSrc = tempSrcs[i];
                 tempDest = tempDests[i];
-                src = MSB(tempSrc);
-                dest = MSB(tempDest);
-                while(src != 0)
+                while(tempSrc != 0)
                 {
+                    src = MSB(tempSrc);
+                    dest = MSB(tempDest);
+                    tempSrc = tempSrc - src;
+                    tempDest = tempDest - dest;
                     if ( (dest & (Rank1 | Rank8)) == 0)
                     {
                         neighbors.Add( new XAction(src, dest) );
@@ -191,14 +190,117 @@ static class ChessRules
                         neighbors.Add( new XAction(src, dest, "Rook") );
                     }
 
-                    tempSrc = tempSrc - src;
-                    tempDest = tempDest - dest;
-                    src = MSB(tempSrc);
-                    dest = MSB(tempDest);
                 }
             }
         } // End Pawns
+        { // Handle Knights
+            UInt64 opponentPieces;
+            UInt64 knights;
+            UInt64 knight;
+            UInt64 knightAttacks;
+            UInt64 knightAttack;
+
+            if (state.turnIsWhite)
+            {
+                knights = state.whiteKnights;
+                opponentPieces = state.blackPieces;
+            } else {
+                knights = state.blackKnights;
+                opponentPieces = state.whitePieces;
+            }
+
+            while(knights != 0)
+            {
+                knight = MSB(knights);
+                knights = knights - knight;
+                knightAttacks = getKnightAttacks(knight) & (state.open | opponentPieces);
+                while(knightAttacks != 0)
+                {
+                    knightAttack = MSB(knightAttacks);
+                    knightAttacks = knightAttacks - knightAttacks;
+                    neighbors.Add( new XAction(knight, knightAttack) );
+                }
+            }
+
+        } // End Knights
 
         return neighbors;
+    }
+
+    /// <summary>
+    /// Some precomputation for knight movement
+    /// </summary>
+    private static UInt64 getKnightAttacks(UInt64 knight)
+    {
+        switch (knight)
+        {
+            case 1: return 132096;
+            case 2: return 329728;
+            case 4: return 659712;
+            case 8: return 1319424;
+            case 16: return 2638848;
+            case 32: return 5277696;
+            case 64: return 10489856;
+            case 128: return 4202496;
+            case 256: return 33816580;
+            case 512: return 84410376;
+            case 1024: return 168886289;
+            case 2048: return 337772578;
+            case 4096: return 675545156;
+            case 8192: return 1351090312;
+            case 16384: return 2685403152;
+            case 32768: return 1075839008;
+            case 65536: return 8657044482;
+            case 131072: return 21609056261;
+            case 262144: return 43234889994;
+            case 524288: return 86469779988;
+            case 1048576: return 172939559976;
+            case 2097152: return 345879119952;
+            case 4194304: return 687463207072;
+            case 8388608: return 275414786112;
+            case 16777216: return 2216203387392;
+            case 33554432: return 5531918402816;
+            case 67108864: return 11068131838464;
+            case 134217728: return 22136263676928;
+            case 268435456: return 44272527353856;
+            case 536870912: return 88545054707712;
+            case 1073741824: return 175990581010432;
+            case 2147483648: return 70506185244672;
+            case 4294967296: return 567348067172352;
+            case 8589934592: return 1416171111120896;
+            case 17179869184: return 2833441750646784;
+            case 34359738368: return 5666883501293568;
+            case 68719476736: return 11333767002587136;
+            case 137438953472: return 22667534005174272;
+            case 274877906944: return 45053588738670592;
+            case 549755813888: return 18049583422636032;
+            case 1099511627776: return 145241105196122112;
+            case 2199023255552: return 362539804446949376;
+            case 4398046511104: return 725361088165576704;
+            case 8796093022208: return 1450722176331153408;
+            case 17592186044416: return 2901444352662306816;
+            case 35184372088832: return 5802888705324613632;
+            case 70368744177664: return 11533718717099671552;
+            case 140737488355328: return 4620693356194824192;
+            case 281474976710656: return 288234782788157440;
+            case 562949953421312: return 576469569871282176;
+            case 1125899906842624: return 1224997833292120064;
+            case 2251799813685248: return 2449995666584240128;
+            case 4503599627370496: return 4899991333168480256;
+            case 9007199254740992: return 9799982666336960512;
+            case 18014398509481984: return 1152939783987658752;
+            case 36028797018963968: return 2305878468463689728;
+            case 72057594037927936: return 1128098930098176;
+            case 144115188075855872: return 2257297371824128;
+            case 288230376151711744: return 4796069720358912;
+            case 576460752303423488: return 9592139440717824;
+            case 1152921504606846976: return 19184278881435648;
+            case 2305843009213693952: return 38368557762871296;
+            case 4611686018427387904: return 4679521487814656;
+            case 9223372036854775808: return 9077567998918656;
+            default:
+                Console.WriteLine("Incorrect knight position");
+                throw new System.Exception();
+        }
     }
 }
