@@ -223,8 +223,106 @@ static class ChessRules
             }
 
         } // End Knights
+        { // Handle King
+            UInt64 opponentPieces;
+            UInt64 king;
+            UInt64 kingAttacks;
+            UInt64 kingAttack;
+            if (state.turnIsWhite)
+            {
+                king = state.whiteKing;
+                opponentPieces = state.blackPieces;
+            } else {
+                king = state.blackKing;
+                opponentPieces = state.whitePieces;
+            }
+            kingAttacks = getKingAttacks(king) & (state.open | opponentPieces);
+            while(kingAttacks != 0)
+            {
+                kingAttack = MSB(kingAttacks);
+                kingAttacks = kingAttacks - kingAttack;
+                neighbors.Add( new XAction(king, kingAttack) );
+            }
+        } // End King
 
         return neighbors;
+    }
+
+    /// <summary>
+    /// Some precomputation for king movement
+    /// </summary>
+    private static UInt64 getKingAttacks(UInt64 king)
+    {
+        switch (king)
+        {
+            case 1: return 770;
+            case 2: return 1797;
+            case 4: return 3594;
+            case 8: return 7188;
+            case 16: return 14376;
+            case 32: return 28752;
+            case 64: return 57504;
+            case 128: return 49216;
+            case 256: return 197123;
+            case 512: return 460039;
+            case 1024: return 920078;
+            case 2048: return 1840156;
+            case 4096: return 3680312;
+            case 8192: return 7360624;
+            case 16384: return 14721248;
+            case 32768: return 12599488;
+            case 65536: return 50463488;
+            case 131072: return 117769984;
+            case 262144: return 235539968;
+            case 524288: return 471079936;
+            case 1048576: return 942159872;
+            case 2097152: return 1884319744;
+            case 4194304: return 3768639488;
+            case 8388608: return 3225468928;
+            case 16777216: return 12918652928;
+            case 33554432: return 30149115904;
+            case 67108864: return 60298231808;
+            case 134217728: return 120596463616;
+            case 268435456: return 241192927232;
+            case 536870912: return 482385854464;
+            case 1073741824: return 964771708928;
+            case 2147483648: return 825720045568;
+            case 4294967296: return 3307175149568;
+            case 8589934592: return 7718173671424;
+            case 17179869184: return 15436347342848;
+            case 34359738368: return 30872694685696;
+            case 68719476736: return 61745389371392;
+            case 137438953472: return 123490778742784;
+            case 274877906944: return 246981557485568;
+            case 549755813888: return 211384331665408;
+            case 1099511627776: return 846636838289408;
+            case 2199023255552: return 1975852459884544;
+            case 4398046511104: return 3951704919769088;
+            case 8796093022208: return 7903409839538176;
+            case 17592186044416: return 15806819679076352;
+            case 35184372088832: return 31613639358152704;
+            case 70368744177664: return 63227278716305408;
+            case 140737488355328: return 54114388906344448;
+            case 281474976710656: return 216739030602088448;
+            case 562949953421312: return 505818229730443264;
+            case 1125899906842624: return 1011636459460886528;
+            case 2251799813685248: return 2023272918921773056;
+            case 4503599627370496: return 4046545837843546112;
+            case 9007199254740992: return 8093091675687092224;
+            case 18014398509481984: return 16186183351374184448;
+            case 36028797018963968: return 13853283560024178688;
+            case 72057594037927936: return 144959613005987840;
+            case 144115188075855872: return 362258295026614272;
+            case 288230376151711744: return 724516590053228544;
+            case 576460752303423488: return 1449033180106457088;
+            case 1152921504606846976: return 2898066360212914176;
+            case 2305843009213693952: return 5796132720425828352;
+            case 4611686018427387904: return 11592265440851656704;
+            case 9223372036854775808: return 9277415232383221760;
+            default:
+                Console.WriteLine("Incorrect king position");
+                throw new System.Exception();
+        }
     }
 
     /// <summary>
