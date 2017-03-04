@@ -52,8 +52,14 @@ static class ChessRules
 {
     private static readonly UInt64 Rank1 = 0x00000000000000FF;
     private static readonly UInt64 Rank2 = 0x000000000000FF00;
+    private static readonly UInt64 Rank3 = 0x0000000000FF0000;
+    private static readonly UInt64 Rank4 = 0x00000000FF000000;
+    private static readonly UInt64 Rank5 = 0x000000FF00000000;
+    private static readonly UInt64 Rank6 = 0x0000FF0000000000;
     private static readonly UInt64 Rank7 = 0x00FF000000000000;
     private static readonly UInt64 Rank8 = 0xFF00000000000000;
+
+    private static readonly UInt64[] Ranks = {Rank1, Rank2, Rank3, Rank4, Rank5, Rank6, Rank7, Rank8};
 
     private static readonly UInt64 AFile = 0x8080808080808080;
     private static readonly UInt64 BFile = 0x4040404040404040;
@@ -228,6 +234,7 @@ static class ChessRules
             UInt64 king;
             UInt64 kingAttacks;
             UInt64 kingAttack;
+
             if (state.turnIsWhite)
             {
                 king = state.whiteKing;
@@ -244,9 +251,74 @@ static class ChessRules
                 neighbors.Add( new XAction(king, kingAttack) );
             }
         } // End King
+        { // Handle Rooks and QueenRooks
+            UInt64 opponentPieces;
+            UInt64 rooks;
+            UInt64 rook;
+            UInt64 rookAttacks = 0;
+            UInt64 rookAttack;
+            UInt64 validMove;
+
+            if (state.turnIsWhite)
+            {
+                rooks = state.whiteRooks | state.whiteQueens;
+                opponentPieces = state.blackPieces;
+            } else {
+                rooks = state.blackRooks | state.blackQueens;
+                opponentPieces = state.whitePieces;
+            }
+
+            validMove = state.open | opponentPieces;
+
+            while(rooks != 0)
+            {
+                rook = MSB(rooks);
+                rooks = rooks - rook;
+
+                // up
+                rookAttack = rook << 8;
+                while((rookAttack & validMove) != 0)
+                {
+                    rookAttacks = rookAttacks | rookAttack;
+                    rookAttack = rookAttack << 8;
+                    if ((rookAttack & opponentPieces) != 0) break;
+                }
+                // down
+                rookAttack = rook >> 8;
+                while((rookAttack & validMove) != 0)
+                {
+                    rookAttacks = rookAttacks | rookAttack;
+                    rookAttack = rookAttack >> 8;
+                    if ((rookAttack & opponentPieces) != 0) break;
+                }
+                // left
+                rookAttack = rook << 1;
+                while((rookAttack & validMove & NotHFile) != 0)
+                {
+                    rookAttacks = rookAttacks | rookAttack;
+                    rookAttack = rookAttack << 1;
+                    if ((rookAttack & opponentPieces) != 0) break;
+                }
+                // right
+                rookAttack = rook >> 1;
+                while((rookAttack & validMove & NotAFile) != 0)
+                {
+                    rookAttacks = rookAttacks | rookAttack;
+                    rookAttack = rookAttack >> 1;
+                    if ((rookAttack & opponentPieces) != 0) break;
+                }
+
+                while(rookAttacks != 0)
+                {
+                    rookAttack = MSB(rookAttacks);
+                    rookAttacks = rookAttacks - rookAttack;
+                    neighbors.Add( new XAction(rook, rookAttack) );
+                }
+            }
+        } // End Rooks and QueenRooks
 
         return neighbors;
-    }
+    } // End LegalMoves
 
     /// <summary>
     /// Some precomputation for king movement
