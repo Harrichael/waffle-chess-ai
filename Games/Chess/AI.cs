@@ -168,9 +168,9 @@ namespace Joueur.cs.Games.Chess
                 }
             }
             state.turnIsWhite = this.Game.CurrentPlayer.Color == "White";
+            state.inCheck = this.Game.CurrentPlayer.InCheck;
             state.enPassTile = this.rfToTile(this.Game.Fen.Split(' ')[3]);
             var castleString = this.Game.Fen.Split(' ')[2];
-            Console.WriteLine(castleString);
             state.whiteCastleKS = castleString.Contains("K");
             state.whiteCastleQS = castleString.Contains("Q");
             state.blackCastleKS = castleString.Contains("k");
