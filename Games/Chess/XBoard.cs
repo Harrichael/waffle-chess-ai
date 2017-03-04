@@ -316,6 +316,71 @@ static class ChessRules
                 }
             }
         } // End Rooks and QueenRooks
+        { // Handle Bishops and QueenBishops
+            UInt64 opponentPieces;
+            UInt64 bishops;
+            UInt64 bishop;
+            UInt64 bishopAttacks = 0;
+            UInt64 bishopAttack;
+            UInt64 validMove;
+
+            if (state.turnIsWhite)
+            {
+                bishops = state.whiteBishops | state.whiteQueens;
+                opponentPieces = state.blackPieces;
+            } else {
+                bishops = state.blackBishops | state.blackQueens;
+                opponentPieces = state.whitePieces;
+            }
+
+            validMove = state.open | opponentPieces;
+
+            while(bishops != 0)
+            {
+                bishop = MSB(bishops);
+                bishops = bishops - bishop;
+
+                // upleft
+                bishopAttack = bishop << 9;
+                while((bishopAttack & validMove & NotHFile) != 0)
+                {
+                    bishopAttacks = bishopAttacks | bishopAttack;
+                    bishopAttack = bishopAttack << 9;
+                    if ((bishopAttack & opponentPieces) != 0) break;
+                }
+                // upright
+                bishopAttack = bishop << 7;
+                while((bishopAttack & validMove & NotAFile) != 0)
+                {
+                    bishopAttacks = bishopAttacks | bishopAttack;
+                    bishopAttack = bishopAttack << 7;
+                    if ((bishopAttack & opponentPieces) != 0) break;
+                }
+                // downleft
+                bishopAttack = bishop >> 7;
+                while((bishopAttack & validMove & NotHFile) != 0)
+                {
+                    bishopAttacks = bishopAttacks | bishopAttack;
+                    bishopAttack = bishopAttack >> 7;
+                    if ((bishopAttack & opponentPieces) != 0) break;
+                }
+                // downright
+                bishopAttack = bishop >> 9;
+                while((bishopAttack & validMove & NotAFile) != 0)
+                {
+                    bishopAttacks = bishopAttacks | bishopAttack;
+                    bishopAttack = bishopAttack >> 9;
+                    if ((bishopAttack & opponentPieces) != 0) break;
+                }
+
+                while(bishopAttacks != 0)
+                {
+                    bishopAttack = MSB(bishopAttacks);
+                    bishopAttacks = bishopAttacks - bishopAttack;
+                    neighbors.Add( new XAction(bishop, bishopAttack) );
+                }
+            }
+        } // End Bishops and QueenBishops
 
         return neighbors;
     } // End LegalMoves
