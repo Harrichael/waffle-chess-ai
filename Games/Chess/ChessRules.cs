@@ -456,15 +456,15 @@ public static class ChessRules
         { // Handle Check
             XBoard _state = state.Copy(); // We need to copy this because Apply/Undo doesn't preserve enPass and castling fully
             UInt64 king;
-            if (state.turnIsWhite)
-            {
-                king = _state.whiteKing;
-            } else {
-                king = _state.blackKing;
-            }
             foreach (XAction neighbor in neighbors)
             {
                 Apply(_state, neighbor);
+                if (state.turnIsWhite)
+                {
+                    king = _state.whiteKing;
+                } else {
+                    king = _state.blackKing;
+                }
                 if (Threats(_state, king) != 0)
                 {
                     invalidNeighbors.Add(neighbor);
@@ -484,7 +484,7 @@ public static class ChessRules
         UInt64 checkThreats;
         UInt64 attackers;
 
-        // Pawns
+        // Check Pawns
         if (state.turnIsWhite)
         {
             attackers = state.whitePawns;
@@ -495,7 +495,7 @@ public static class ChessRules
         }
         threats = threats | (attackers & checkThreats);
 
-        // Knights
+        // Check Knights
         if (state.turnIsWhite)
         {
             attackers = state.whiteKnights;
@@ -505,7 +505,7 @@ public static class ChessRules
         checkThreats = getKnightAttacks(tile);
         threats = threats | (attackers & checkThreats);
 
-        // King
+        // Check King
         if (state.turnIsWhite)
         {
             attackers = state.whiteKing;
@@ -515,7 +515,7 @@ public static class ChessRules
         checkThreats = getKingAttacks(tile);
         threats = threats | (attackers & checkThreats);
 
-        // Rooks
+        // Check Rooks
         if (state.turnIsWhite)
         {
             attackers = state.whiteRooks | state.whiteQueens;
@@ -568,6 +568,59 @@ public static class ChessRules
             threat = threat >> 1;
         }
 
+        // Check Bishops
+        if (state.turnIsWhite)
+        {
+            attackers = state.whiteBishops | state.whiteQueens;
+        } else {
+            attackers = state.blackBishops | state.blackQueens;
+        }
+        validMove = state.open | attackers;
+        // upleft
+        threat = tile << 9;
+        while((threat & validMove & NotHFile) != 0)
+        {
+            if ((threat & attackers) != 0)
+            {
+                threats = threats | threat;
+                break;
+            }
+            threat = threat << 9;
+        }
+        // upright
+        threat = tile << 7;
+        while((threat & validMove & NotAFile) != 0)
+        {
+            if ((threat & attackers) != 0)
+            {
+                threats = threats | threat;
+                break;
+            }
+            threat = threat << 7;
+        }
+        // downleft
+        threat = tile >> 7;
+        while((threat & validMove & NotHFile) != 0)
+        {
+            if ((threat & attackers) != 0)
+            {
+                threats = threats | threat;
+                break;
+            }
+            threat = threat >> 7;
+        }
+        // downright
+        threat = tile >> 9;
+        while((threat & validMove & NotAFile) != 0)
+        {
+            if ((threat & attackers) != 0)
+            {
+                threats = threats | threat;
+                break;
+            }
+            threat = threat >> 9;
+        }
+
         return threats;
     }
 
@@ -611,7 +664,7 @@ public static class ChessRules
                     state.whitePieces = (state.whitePieces & ~action.srcTile) | action.destTile;
                 break;
                 case PieceType.King:
-                    state.whiteKing = (state.whiteKing & ~action.srcTile) | action.destTile;
+                    state.whiteKing = action.destTile;
                     state.whitePieces = (state.whitePieces & ~action.srcTile) | action.destTile;
                     state.whiteCastleKS = false;
                     state.whiteCastleQS = false;
@@ -694,7 +747,7 @@ public static class ChessRules
                     state.blackPieces = (state.blackPieces & ~action.srcTile) | action.destTile;
                 break;
                 case PieceType.King:
-                    state.blackKing = (state.blackKing & ~action.srcTile) | action.destTile;
+                    state.blackKing = action.destTile;
                     state.blackPieces = (state.blackPieces & ~action.srcTile) | action.destTile;
                     state.blackCastleKS = false;
                     state.blackCastleQS = false;
@@ -776,7 +829,7 @@ public static class ChessRules
                     state.whitePieces = (state.whitePieces | action.srcTile) & ~action.destTile;
                 break;
                 case PieceType.King:
-                    state.whiteKing = (state.whiteKing | action.srcTile) & ~action.destTile;
+                    state.whiteKing = action.srcTile;
                     state.whitePieces = (state.whitePieces | action.srcTile) & ~action.destTile;
                 break;
                 case PieceType.Castle:
@@ -842,7 +895,7 @@ public static class ChessRules
                     state.blackPieces = (state.blackPieces | action.srcTile) & ~action.destTile;
                 break;
                 case PieceType.King:
-                    state.blackKing = (state.blackKing | action.srcTile) & ~action.destTile;
+                    state.blackKing = action.srcTile;
                     state.blackPieces = (state.blackPieces | action.srcTile) & ~action.destTile;
                 break;
                 case PieceType.Castle:
