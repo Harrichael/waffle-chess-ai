@@ -7,6 +7,7 @@ public class XAction
 {
     public UInt64 srcTile;
     public UInt64 destTile;
+    public Byte castleSettings;
     public PieceType pieceType;
     public PieceType attackType;
     public PieceType promotionType;
@@ -14,6 +15,7 @@ public class XAction
     public XAction() {}
     public XAction( UInt64 src,
                     UInt64 dest,
+                    byte castleSettings,
                     PieceType type,
                     PieceType attack=PieceType.None,
                     PieceType promote=PieceType.None
@@ -21,6 +23,7 @@ public class XAction
     {
         this.srcTile = src;
         this.destTile = dest;
+        this.castleSettings = castleSettings;
         this.pieceType = type;
         this.attackType = attack;
         this.promotionType = promote;
