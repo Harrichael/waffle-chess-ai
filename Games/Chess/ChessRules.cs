@@ -488,10 +488,10 @@ public static class ChessRules
         if (state.turnIsWhite)
         {
             attackers = state.whitePawns;
-            checkThreats = (tile >> 9) | (tile >> 7);
+            checkThreats = ((tile >> 9) & NotAFile) | ((tile >> 7) & NotHFile);
         } else {
             attackers = state.blackPawns;
-            checkThreats = (tile << 9) | (tile << 7);
+            checkThreats = ((tile << 9) & NotHFile) | ((tile << 7) & NotAFile);
         }
         threats = threats | (attackers & checkThreats);
 
