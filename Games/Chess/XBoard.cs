@@ -52,12 +52,6 @@ public class XBoard
         this.open = ~this.pieces;
     }
 
-    public void minorUpdate()
-    {
-        this.pieces = this.whitePieces | this.blackPieces;
-        this.open = ~this.pieces;
-    }
-
     public XBoard Copy()
     {
         return (XBoard)this.MemberwiseClone();
@@ -82,12 +76,7 @@ public class XBoard
                  (this.pieces        == obj.pieces)        &&
                  (this.open          == obj.open)          &&
                  (this.turnIsWhite   == obj.turnIsWhite)   &&
-                 (this.inCheck       == obj.inCheck)       &&
-                 (this.enPassTile    == obj.enPassTile)    &&
-                 (this.whiteCastleKS == obj.whiteCastleKS) &&
-                 (this.whiteCastleQS == obj.whiteCastleQS) &&
-                 (this.blackCastleKS == obj.blackCastleKS) &&
-                 (this.blackCastleQS == obj.blackCastleQS) 
+                 (this.inCheck       == obj.inCheck)
         );
     }
 
