@@ -97,7 +97,10 @@ namespace Joueur.cs.Games.Chess
             var srcRF = this.tileToRF(action.srcTile);
             var piece = this.Player.Pieces.First(p => (p.File + p.Rank) == srcRF);
             var destRF = this.tileToRF(action.destTile);
-            piece.Move("" + destRF[0], (int)(destRF[1] - '0'), action.promotionType);
+            piece.Move( "" + destRF[0],
+                        (int)(destRF[1] - '0'),
+                        action.promotionType.ToString().Replace("None", "")
+                      );
 
             return true;
         }

@@ -107,7 +107,7 @@ public static class ChessRules
         var neighbors = new List<XAction>();
         var invalidNeighbors = new HashSet<XAction>();
         var opponentPT = new Dictionary<UInt64, PieceType>();
-        { // Precompute an opponent piece type dict
+        { // Precompute an opponent piece type dict, we use this for O(1) retrieval of attacked type for XAction construction
             var pieceBBs = new List<UInt64>();
             PieceType[] pts = {PieceType.Pawn, PieceType.Rook, PieceType.Knight, PieceType.Bishop, PieceType.Queen};
             UInt64 pieces;
@@ -205,15 +205,15 @@ public static class ChessRules
                     } else {
                         if (i > 1)
                         {
-                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, attack:opponentPT[dest], promote:"Queen") );
-                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, attack:opponentPT[dest], promote:"Knight") );
-                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, attack:opponentPT[dest], promote:"Bishop") );
-                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, attack:opponentPT[dest], promote:"Rook") );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, attack:opponentPT[dest], promote:PieceType.Queen) );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, attack:opponentPT[dest], promote:PieceType.Knight) );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, attack:opponentPT[dest], promote:PieceType.Bishop) );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, attack:opponentPT[dest], promote:PieceType.Rook) );
                         } else {
-                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:"Queen") );
-                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:"Knight") );
-                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:"Bishop") );
-                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:"Rook") );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:PieceType.Queen) );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:PieceType.Knight) );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:PieceType.Bishop) );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:PieceType.Rook) );
                         }
                     }
 

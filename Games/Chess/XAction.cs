@@ -9,14 +9,14 @@ public class XAction
     public UInt64 destTile;
     public PieceType pieceType;
     public PieceType attackType;
-    public string promotionType;
+    public PieceType promotionType;
 
     public XAction() {}
     public XAction( UInt64 src,
                     UInt64 dest,
                     PieceType type,
                     PieceType attack=PieceType.None,
-                    string promote=""
+                    PieceType promote=PieceType.None
                   )
     {
         this.srcTile = src;
