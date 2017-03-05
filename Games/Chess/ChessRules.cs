@@ -244,7 +244,7 @@ public static class ChessRules
                 while(knightAttacks != 0)
                 {
                     knightAttack = MSB(knightAttacks);
-                    knightAttacks = knightAttacks - knightAttacks;
+                    knightAttacks = knightAttacks - knightAttack;
                     if ((knightAttack & opponentPieces) != 0)
                     {
                         neighbors.Add( new XAction(knight, knightAttack, PieceType.Knight, attack:opponentPT[knightAttack]) );
@@ -454,30 +454,121 @@ public static class ChessRules
             }
         } // End Bishops and QueenBishops
         { // Handle Check
+            XBoard _state = state.Copy(); // We need to copy this because Apply/Undo doesn't preserve enPass and castling fully
             UInt64 king;
             if (state.turnIsWhite)
             {
-                king = state.whiteKing;
+                king = _state.whiteKing;
             } else {
-                king = state.blackKing;
+                king = _state.blackKing;
             }
             foreach (XAction neighbor in neighbors)
             {
-                Apply(state, neighbor);
-                if (Threats(king) != 0)
+                Apply(_state, neighbor);
+                if (Threats(_state, king) != 0)
                 {
                     invalidNeighbors.Add(neighbor);
                 }
-                Undo(state, neighbor);
+                Undo(_state, neighbor);
             }
         }
 
         return neighbors.Where(n => !invalidNeighbors.Contains(n)).ToList();
     } // End LegalMoves
 
-    private static UInt64 Threats(UInt64 tile)
+    private static UInt64 Threats(XBoard state, UInt64 tile)
     {
-        return 0;
+        UInt64 threats = 0;
+        UInt64 threat;
+        UInt64 validMove;
+        UInt64 checkThreats;
+        UInt64 attackers;
+
+        // Pawns
+        if (state.turnIsWhite)
+        {
+            attackers = state.whitePawns;
+            checkThreats = (tile >> 9) | (tile >> 7);
+        } else {
+            attackers = state.blackPawns;
+            checkThreats = (tile << 9) | (tile << 7);
+        }
+        threats = threats | (attackers & checkThreats);
+
+        // Knights
+        if (state.turnIsWhite)
+        {
+            attackers = state.whiteKnights;
+        } else {
+            attackers = state.blackKnights;
+        }
+        checkThreats = getKnightAttacks(tile);
+        threats = threats | (attackers & checkThreats);
+
+        // King
+        if (state.turnIsWhite)
+        {
+            attackers = state.whiteKing;
+        } else {
+            attackers = state.blackKing;
+        }
+        checkThreats = getKingAttacks(tile);
+        threats = threats | (attackers & checkThreats);
+
+        // Rooks
+        if (state.turnIsWhite)
+        {
+            attackers = state.whiteRooks | state.whiteQueens;
+        } else {
+            attackers = state.blackRooks | state.blackQueens;
+        }
+        validMove = state.open | attackers;
+        // up
+        threat = tile << 8;
+        while((threat & validMove) != 0)
+        {
+            if ((threat & attackers) != 0)
+            {
+                threats = threats | threat;
+                break;
+            }
+            threat = threat << 8;
+        }
+        // down
+        threat = tile >> 8;
+        while((threat & validMove) != 0)
+        {
+            if ((threat & attackers) != 0)
+            {
+                threats = threats | threat;
+                break;
+            }
+            threat = threat >> 8;
+        }
+        // left
+        threat = tile << 1;
+        while((threat & validMove & NotHFile) != 0)
+        {
+            if ((threat & attackers) != 0)
+            {
+                threats = threats | threat;
+                break;
+            }
+            threat = threat << 1;
+        }
+        // right
+        threat = tile >> 1;
+        while((threat & validMove & NotAFile) != 0)
+        {
+            if ((threat & attackers) != 0)
+            {
+                threats = threats | threat;
+                break;
+            }
+            threat = threat >> 1;
+        }
+
+        return threats;
     }
 
     private static void Apply(XBoard state, XAction action)
