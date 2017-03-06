@@ -11,49 +11,49 @@ public enum PieceType
 
 public static class ChessRules
 {
-    private static readonly UInt64 Rank1 = 0x00000000000000FF;
-    private static readonly UInt64 Rank2 = 0x000000000000FF00;
-    private static readonly UInt64 Rank3 = 0x0000000000FF0000;
-    private static readonly UInt64 Rank4 = 0x00000000FF000000;
-    private static readonly UInt64 Rank5 = 0x000000FF00000000;
-    private static readonly UInt64 Rank6 = 0x0000FF0000000000;
-    private static readonly UInt64 Rank7 = 0x00FF000000000000;
-    private static readonly UInt64 Rank8 = 0xFF00000000000000;
+    public static readonly UInt64 Rank1 = 0x00000000000000FF;
+    public static readonly UInt64 Rank2 = 0x000000000000FF00;
+    public static readonly UInt64 Rank3 = 0x0000000000FF0000;
+    public static readonly UInt64 Rank4 = 0x00000000FF000000;
+    public static readonly UInt64 Rank5 = 0x000000FF00000000;
+    public static readonly UInt64 Rank6 = 0x0000FF0000000000;
+    public static readonly UInt64 Rank7 = 0x00FF000000000000;
+    public static readonly UInt64 Rank8 = 0xFF00000000000000;
 
-    private static readonly UInt64[] Ranks = {Rank1, Rank2, Rank3, Rank4, Rank5, Rank6, Rank7, Rank8};
+    public static readonly UInt64[] Ranks = {Rank1, Rank2, Rank3, Rank4, Rank5, Rank6, Rank7, Rank8};
 
-    private static readonly UInt64 AFile = 0x8080808080808080;
-    private static readonly UInt64 BFile = 0x4040404040404040;
-    private static readonly UInt64 CFile = 0x2020202020202020;
-    private static readonly UInt64 DFile = 0x1010101010101010;
-    private static readonly UInt64 EFile = 0x0808080808080808;
-    private static readonly UInt64 FFile = 0x0404040404040404;
-    private static readonly UInt64 GFile = 0x0202020202020202;
-    private static readonly UInt64 HFile = 0x0101010101010101;
+    public static readonly UInt64 AFile = 0x8080808080808080;
+    public static readonly UInt64 BFile = 0x4040404040404040;
+    public static readonly UInt64 CFile = 0x2020202020202020;
+    public static readonly UInt64 DFile = 0x1010101010101010;
+    public static readonly UInt64 EFile = 0x0808080808080808;
+    public static readonly UInt64 FFile = 0x0404040404040404;
+    public static readonly UInt64 GFile = 0x0202020202020202;
+    public static readonly UInt64 HFile = 0x0101010101010101;
 
-    private static readonly UInt64[] Files = {AFile, BFile, CFile, DFile, EFile, FFile, GFile, HFile};
+    public static readonly UInt64[] Files = {AFile, BFile, CFile, DFile, EFile, FFile, GFile, HFile};
 
-    private static readonly UInt64 NotAFile = ~AFile;
-    private static readonly UInt64 NotHFile = ~HFile;
+    public static readonly UInt64 NotAFile = ~AFile;
+    public static readonly UInt64 NotHFile = ~HFile;
 
-    private static readonly UInt64 whiteKingStart   = 0x0000000000000008;
-    private static readonly UInt64 whiteKSRookStart = 0x0000000000000001;
-    private static readonly UInt64 whiteQSRookStart = 0x0000000000000080;
-    private static readonly UInt64 whiteKSSpace     = 0x0000000000000006;
-    private static readonly UInt64 whiteKSDest      = 0x0000000000000002;
-    private static readonly UInt64 whiteKSRookDest  = 0x0000000000000004;
-    private static readonly UInt64 whiteQSSpace     = 0x0000000000000070;
-    private static readonly UInt64 whiteQSDest      = 0x0000000000000020;
-    private static readonly UInt64 whiteQSRookDest  = 0x0000000000000010;
-    private static readonly UInt64 blackKingStart   = 0x0800000000000000;
-    private static readonly UInt64 blackKSRookStart = 0x0100000000000000;
-    private static readonly UInt64 blackQSRookStart = 0x8000000000000000;
-    private static readonly UInt64 blackKSSpace     = 0x0600000000000000;
-    private static readonly UInt64 blackKSDest      = 0x0200000000000000;
-    private static readonly UInt64 blackKSRookDest  = 0x0400000000000000;
-    private static readonly UInt64 blackQSSpace     = 0x7000000000000000;
-    private static readonly UInt64 blackQSDest      = 0x2000000000000000;
-    private static readonly UInt64 blackQSRookDest  = 0x1000000000000000;
+    public static readonly UInt64 whiteKingStart   = 0x0000000000000008;
+    public static readonly UInt64 whiteKSRookStart = 0x0000000000000001;
+    public static readonly UInt64 whiteQSRookStart = 0x0000000000000080;
+    public static readonly UInt64 whiteKSSpace     = 0x0000000000000006;
+    public static readonly UInt64 whiteKSDest      = 0x0000000000000002;
+    public static readonly UInt64 whiteKSRookDest  = 0x0000000000000004;
+    public static readonly UInt64 whiteQSSpace     = 0x0000000000000070;
+    public static readonly UInt64 whiteQSDest      = 0x0000000000000020;
+    public static readonly UInt64 whiteQSRookDest  = 0x0000000000000010;
+    public static readonly UInt64 blackKingStart   = 0x0800000000000000;
+    public static readonly UInt64 blackKSRookStart = 0x0100000000000000;
+    public static readonly UInt64 blackQSRookStart = 0x8000000000000000;
+    public static readonly UInt64 blackKSSpace     = 0x0600000000000000;
+    public static readonly UInt64 blackKSDest      = 0x0200000000000000;
+    public static readonly UInt64 blackKSRookDest  = 0x0400000000000000;
+    public static readonly UInt64 blackQSSpace     = 0x7000000000000000;
+    public static readonly UInt64 blackQSDest      = 0x2000000000000000;
+    public static readonly UInt64 blackQSRookDest  = 0x1000000000000000;
 
 
     public static UInt64 MSB(UInt64 input)
@@ -628,7 +628,7 @@ public static class ChessRules
         return threats;
     }
 
-    private static void Apply(XBoard state, XAction action)
+    public static void Apply(XBoard state, XAction action)
     {
         state.enPassTile = 0;
         if (state.turnIsWhite)
@@ -804,7 +804,7 @@ public static class ChessRules
         state.turnIsWhite = !state.turnIsWhite;
     }
 
-    private static void Undo(XBoard state, XAction action)
+    public static void Undo(XBoard state, XAction action)
     {
         state.turnIsWhite = !state.turnIsWhite;
         state.enPassTile = 0;

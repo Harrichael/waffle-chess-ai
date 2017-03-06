@@ -112,7 +112,7 @@ namespace Joueur.cs.Games.Chess
         {
             var state = this.createState();
             var actions = ChessRules.LegalMoves(state);
-            return Strategy.RandomSelect(actions);
+            return ChessStrategy.HeuristicSelect(state, actions, this.Player.Color == "White");
         }
 
         /// <summary>
