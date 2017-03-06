@@ -1036,7 +1036,7 @@ public static class ChessRules
     /// <summary>
     /// Some precomputation for king movement
     /// </summary>
-    private static UInt64 getKingAttacks(UInt64 king)
+    public static UInt64 getKingAttacks(UInt64 king)
     {
         switch (king)
         {
@@ -1113,7 +1113,7 @@ public static class ChessRules
     /// <summary>
     /// Some precomputation for knight movement
     /// </summary>
-    private static UInt64 getKnightAttacks(UInt64 knight)
+    public static UInt64 getKnightAttacks(UInt64 knight)
     {
         switch (knight)
         {
