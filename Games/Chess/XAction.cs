@@ -7,7 +7,7 @@ public class XAction
 {
     public UInt64 srcTile;
     public UInt64 destTile;
-    public Byte castleSettings;
+    public byte castleSettings;
     public PieceType pieceType;
     public PieceType attackType;
     public PieceType promotionType;

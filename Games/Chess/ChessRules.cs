@@ -465,9 +465,9 @@ public static class ChessRules
                 Apply(state, neighbor);
                 if (state.turnIsWhite)
                 {
-                    king = state.whiteKing;
-                } else {
                     king = state.blackKing;
+                } else {
+                    king = state.whiteKing;
                 }
                 if (Threats(state, king) != 0)
                 {
