@@ -1103,7 +1103,7 @@ public static class ChessRules
             case 1152921504606846976: return 2898066360212914176;
             case 2305843009213693952: return 5796132720425828352;
             case 4611686018427387904: return 11592265440851656704;
-            case 9223372036854775808: return 9277415232383221760;
+            case 9223372036854775808: return 4665729213955833856;
             default:
                 Console.WriteLine("Incorrect king position");
                 throw new System.Exception();
