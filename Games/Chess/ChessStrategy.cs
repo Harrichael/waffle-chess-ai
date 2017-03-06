@@ -22,7 +22,7 @@ public static class ChessStrategy
     public static XAction HeuristicSelect(XBoard state, List<XAction> sequence, bool playerIsWhite)
     {
         var bestActions = new List<XAction>();
-        UInt64 bestH;
+        Int64 bestH;
 
         ChessRules.Apply(state, sequence[0]);
         bestH = Heuristic(state, playerIsWhite);
@@ -31,7 +31,7 @@ public static class ChessStrategy
         foreach (var action in sequence.Skip(1))
         {
             ChessRules.Apply(state, action);
-            UInt64 val = Heuristic(state, playerIsWhite);
+            Int64 val = Heuristic(state, playerIsWhite);
             if (val > bestH)
             {
                 bestH = val;
@@ -59,7 +59,7 @@ public static class ChessStrategy
         return count;
     }
 
-    public static UInt64 Heuristic(XBoard state, bool playerIsWhite)
+    public static Int64 Heuristic(XBoard state, bool playerIsWhite)
     {
         UInt64 whiteMaterial;
         UInt64 blackMaterial;
@@ -81,10 +81,10 @@ public static class ChessStrategy
         
         if (playerIsWhite)
         {
-            return whiteMaterial - blackMaterial;
+            return (Int64)(whiteMaterial - blackMaterial);
         }
         {
-            return blackMaterial - whiteMaterial;
+            return (Int64)(blackMaterial - whiteMaterial);
         }
     }
 }
