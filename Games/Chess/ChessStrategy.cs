@@ -16,7 +16,7 @@ public static class ChessStrategy
 
     public static T RandomSelect<T>(List<T> sequence)
     {
-        return sequence[rand.Next(sequence.Count)];
+        return sequence[rand.Next(sequence.Count())];
     }
 
     public static XAction HeuristicSelect(XBoard state, List<XAction> sequence, bool playerIsWhite)
@@ -26,6 +26,7 @@ public static class ChessStrategy
 
         ChessRules.Apply(state, sequence[0]);
         bestH = Heuristic(state, playerIsWhite);
+        bestActions.Add(sequence[0]);
         ChessRules.Undo(state, sequence[0]);
         foreach (var action in sequence.Skip(1))
         {
