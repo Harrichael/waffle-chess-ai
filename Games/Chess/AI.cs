@@ -110,11 +110,9 @@ namespace Joueur.cs.Games.Chess
         /// </summary>
         private XAction getTurnAction()
         {
-            var rand = new Random();
-
             var state = this.createState();
             var actions = ChessRules.LegalMoves(state);
-            return actions[rand.Next(actions.Count)];
+            return Strategy.RandomSelect(actions);
         }
 
         /// <summary>
