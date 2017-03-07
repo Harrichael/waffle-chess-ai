@@ -11,6 +11,8 @@ public enum PieceType
 
 public static class ChessRules
 {
+    private static Random rand = new Random();
+
     public static readonly UInt64 Rank1 = 0x00000000000000FF;
     public static readonly UInt64 Rank2 = 0x000000000000FF00;
     public static readonly UInt64 Rank3 = 0x0000000000FF0000;
@@ -477,7 +479,7 @@ public static class ChessRules
             }
         }
 
-        return neighbors.Where(n => !invalidNeighbors.Contains(n)).ToList();
+        return neighbors.Where(n => !invalidNeighbors.Contains(n)).OrderBy(n => rand.Next()).ToList();
     } // End LegalMoves
 
     private static UInt64 Threats(XBoard state, UInt64 tile)

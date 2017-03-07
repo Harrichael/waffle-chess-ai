@@ -13,6 +13,9 @@ public static class ChessStrategy
     static byte BishopMaterial = 60;
     static byte KnightMaterial = 55;
 
+    static byte threatenedPenalty = 20;
+    static byte defendedBonus = 5;
+
     static byte PawnAdv0Material = 10;
     static byte PawnAdv1Material = 20;
     static byte PawnAdv2Material = 40;
@@ -229,8 +232,15 @@ public static class ChessStrategy
         // Position
         UInt64 whitePosition = 0;
         UInt64 blackPosition = 0;
+
+        UInt64 defendedWhitePositions = 0;
+        UInt64 threatenedWhitePositions = 0;
+        UInt64 defendedBlackPositions = 0;
+        UInt64 threatenedBlackPositions = 0;
         { // White Pawns
             UInt64 pawnAttacks = ((state.whitePawns & ChessRules.NotHFile) << 7) | ((state.whitePawns & ChessRules.NotAFile) << 9);
+            threatenedBlackPositions = threatenedBlackPositions | (pawnAttacks & state.blackPieces);
+            defendedWhitePositions = defendedWhitePositions | (pawnAttacks & state.whitePieces);
             whitePosition = whitePosition + PawnOpenValue * CountBits(pawnAttacks & state.open);
 
             whitePosition = whitePosition + PawnAttackValue * CountBits(pawnAttacks & state.blackPawns  ) * PawnPositionValue;
@@ -249,6 +259,8 @@ public static class ChessStrategy
         }
         { // Black Pawns
             UInt64 pawnAttacks = ((state.blackPawns & ChessRules.NotAFile) >> 7) | ((state.blackPawns & ChessRules.NotHFile) >> 9);
+            threatenedWhitePositions = threatenedWhitePositions | (pawnAttacks & state.whitePieces);
+            defendedBlackPositions = defendedBlackPositions | (pawnAttacks & state.blackPieces);
             blackPosition = blackPosition + PawnOpenValue * CountBits(pawnAttacks & state.open);
 
             blackPosition = blackPosition + PawnAttackValue * CountBits(pawnAttacks & state.whitePawns  ) * PawnPositionValue;
@@ -275,6 +287,8 @@ public static class ChessStrategy
                 knights = knights - knight;
                 knightAttacks = knightAttacks | ChessRules.getKnightAttacks(knight);
             }
+            threatenedBlackPositions = threatenedBlackPositions | (knightAttacks & state.blackPieces);
+            defendedWhitePositions = defendedWhitePositions | (knightAttacks & state.whitePieces);
             whitePosition = whitePosition + KnightOpenValue * CountBits(knightAttacks & state.open);
 
             whitePosition = whitePosition + KnightAttackValue * CountBits(knightAttacks & state.blackPawns  ) * PawnPositionValue;
@@ -301,6 +315,8 @@ public static class ChessStrategy
                 knights = knights - knight;
                 knightAttacks = knightAttacks | ChessRules.getKnightAttacks(knight);
             }
+            threatenedWhitePositions = threatenedWhitePositions | (knightAttacks & state.whitePieces);
+            defendedBlackPositions = defendedBlackPositions | (knightAttacks & state.blackPieces);
             blackPosition = blackPosition + KnightOpenValue * CountBits(knightAttacks & state.open);
 
             blackPosition = blackPosition + KnightAttackValue * CountBits(knightAttacks & state.whitePawns  ) * PawnPositionValue;
@@ -358,6 +374,8 @@ public static class ChessStrategy
             }
             // End DownRight
 
+            threatenedBlackPositions = threatenedBlackPositions | (bishopAttacks & state.blackPieces);
+            defendedWhitePositions = defendedWhitePositions | (bishopAttacks & state.whitePieces);
             whitePosition = whitePosition + BishopOpenValue * CountBits(bishopAttacks & state.open);
 
             whitePosition = whitePosition + BishopAttackValue * CountBits(bishopAttacks & state.blackPawns  ) * PawnPositionValue;
@@ -415,6 +433,8 @@ public static class ChessStrategy
             }
             // End DownRight
 
+            threatenedWhitePositions = threatenedWhitePositions | (bishopAttacks & state.whitePieces);
+            defendedBlackPositions = defendedBlackPositions | (bishopAttacks & state.blackPieces);
             blackPosition = blackPosition + BishopOpenValue * CountBits(bishopAttacks & state.open);
 
             blackPosition = blackPosition + BishopAttackValue * CountBits(bishopAttacks & state.whitePawns  ) * PawnPositionValue;
@@ -473,6 +493,8 @@ public static class ChessStrategy
             }
             // End Right
 
+            threatenedBlackPositions = threatenedBlackPositions | (rookAttacks & state.blackPieces);
+            defendedWhitePositions = defendedWhitePositions | (rookAttacks & state.whitePieces);
             whitePosition = whitePosition + RookOpenValue * CountBits(rookAttacks & state.open);
 
             whitePosition = whitePosition + RookAttackValue * CountBits(rookAttacks & state.blackPawns  ) * PawnPositionValue;
@@ -531,6 +553,8 @@ public static class ChessStrategy
             }
             // End Right
 
+            threatenedWhitePositions = threatenedWhitePositions | (rookAttacks & state.whitePieces);
+            defendedBlackPositions = defendedBlackPositions | (rookAttacks & state.blackPieces);
             blackPosition = blackPosition + RookOpenValue * CountBits(rookAttacks & state.open);
 
             blackPosition = blackPosition + RookAttackValue * CountBits(rookAttacks & state.whitePawns  ) * PawnPositionValue;
@@ -624,6 +648,8 @@ public static class ChessStrategy
             }
             // End Right
 
+            threatenedBlackPositions = threatenedBlackPositions | (queenAttacks & state.blackPieces);
+            defendedWhitePositions = defendedWhitePositions | (queenAttacks & state.whitePieces);
             whitePosition = whitePosition + QueenOpenValue * CountBits(queenAttacks & state.open);
 
             whitePosition = whitePosition + QueenAttackValue * CountBits(queenAttacks & state.blackPawns  ) * PawnPositionValue;
@@ -717,6 +743,8 @@ public static class ChessStrategy
             }
             // End Right
 
+            threatenedWhitePositions = threatenedWhitePositions | (queenAttacks & state.whitePieces);
+            defendedBlackPositions = defendedBlackPositions | (queenAttacks & state.blackPieces);
             blackPosition = blackPosition + QueenOpenValue * CountBits(queenAttacks & state.open);
 
             blackPosition = blackPosition + QueenAttackValue * CountBits(queenAttacks & state.whitePawns  ) * PawnPositionValue;
@@ -736,6 +764,8 @@ public static class ChessStrategy
         { // White King
             UInt64 kingAttacks = ChessRules.getKingAttacks(state.whiteKing);
             
+            threatenedBlackPositions = threatenedBlackPositions | (kingAttacks & state.blackPieces);
+            defendedWhitePositions = defendedWhitePositions | (kingAttacks & state.whitePieces);
             whitePosition = whitePosition + KingOpenValue * CountBits(kingAttacks & state.open);
 
             whitePosition = whitePosition + KingAttackValue * CountBits(kingAttacks & state.blackPawns  ) * PawnPositionValue;
@@ -755,6 +785,8 @@ public static class ChessStrategy
         { // Black King
             UInt64 kingAttacks = ChessRules.getKingAttacks(state.blackKing);
             
+            threatenedWhitePositions = threatenedWhitePositions | (kingAttacks & state.whitePieces);
+            defendedBlackPositions = defendedBlackPositions | (kingAttacks & state.blackPieces);
             blackPosition = blackPosition + KingOpenValue * CountBits(kingAttacks & state.open);
 
             blackPosition = blackPosition + KingAttackValue * CountBits(kingAttacks & state.whitePawns  ) * PawnPositionValue;
@@ -771,6 +803,11 @@ public static class ChessStrategy
             blackPosition = blackPosition + KingDefenseValue * CountBits(kingAttacks & state.blackQueens ) * QueenPositionValue;
             blackPosition = blackPosition + KingDefenseValue * CountBits(kingAttacks & state.blackKing   ) * KingPositionValue;
         } // End Black King
+
+        threatenedWhitePositions = threatenedWhitePositions & ~defendedWhitePositions;
+        threatenedBlackPositions = threatenedBlackPositions & ~defendedBlackPositions;
+        whitePosition += defendedBonus * CountBits(defendedWhitePositions) - threatenedPenalty * CountBits(threatenedWhitePositions);
+        blackPosition += defendedBonus * CountBits(defendedBlackPositions) - threatenedPenalty * CountBits(threatenedBlackPositions);
         
         if (playerIsWhite)
         {
