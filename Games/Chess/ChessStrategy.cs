@@ -53,6 +53,100 @@ public static class ChessStrategy
         return sequence[rand.Next(sequence.Count())];
     }
 
+    public static XAction DL_Minimax(XBoard state, int depth, bool playerIsWhite)
+    {
+        var children = ChessRules.LegalMoves(state);
+        var bestChild = children[0];
+        ChessRules.Apply(state, bestChild);
+        var bestVal = DL_Min(state, depth-1, playerIsWhite);
+        ChessRules.Undo(state, bestChild);
+        foreach(var child in children)
+        {
+            ChessRules.Apply(state, child);
+            var val = DL_Min(state, depth-1, playerIsWhite);
+            ChessRules.Undo(state, child);
+            if (val > bestVal)
+            {
+                bestChild = child;
+                bestVal = val;
+            }
+        }
+        Console.WriteLine("Final Evaluation: " + bestVal);
+        return bestChild;
+    }
+
+    private static Int64 DL_Max(XBoard state, int depth, bool maxWhite)
+    {
+        if (depth == 0)
+        {
+            return Heuristic(state, maxWhite);
+        }
+
+        var children = ChessRules.LegalMoves(state);
+        if (children.Count() == 0) // Is terminal
+        {
+            if (state.inCheck) // Check Mate
+            {
+                return Int64.MinValue;
+            } else { // Stalemate
+                return 0;
+            }
+        }
+
+        ChessRules.Apply(state, children[0]);
+        var maxH = DL_Min(state, depth-1, maxWhite);
+        ChessRules.Undo(state, children[0]);
+
+        foreach(var child in children.Skip(1))
+        {
+            ChessRules.Apply(state, child);
+            var hVal = DL_Min(state, depth-1, maxWhite);
+            ChessRules.Undo(state, child);
+
+            if (hVal > maxH)
+            {
+                maxH = hVal;
+            }
+        }
+        return maxH;
+    }
+
+    private static Int64 DL_Min(XBoard state, int depth, bool maxWhite)
+    {
+        if (depth == 0)
+        {
+            return Heuristic(state, maxWhite);
+        }
+
+        var children = ChessRules.LegalMoves(state);
+        if (children.Count() == 0) // Is terminal
+        {
+            if (state.inCheck) // Check Mate
+            {
+                return Int64.MaxValue;
+            } else { // Stalemate
+                return 0;
+            }
+        }
+
+        ChessRules.Apply(state, children[0]);
+        var minH = DL_Max(state, depth-1, maxWhite);
+        ChessRules.Undo(state, children[0]);
+
+        foreach(var child in children.Skip(1))
+        {
+            ChessRules.Apply(state, child);
+            var hVal = DL_Max(state, depth-1, maxWhite);
+            ChessRules.Undo(state, child);
+
+            if (hVal < minH)
+            {
+                minH = hVal;
+            }
+        }
+        return minH;
+    }
+
     public static XAction HeuristicSelect(XBoard state, List<XAction> sequence, bool playerIsWhite)
     {
         var bestActions = new List<XAction>();

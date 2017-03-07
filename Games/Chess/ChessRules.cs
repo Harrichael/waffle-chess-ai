@@ -841,6 +841,12 @@ public static class ChessRules
         }
         state.pieces = state.whitePieces | state.blackPieces;
         state.open = ~state.pieces;
+        if (state.turnIsWhite)
+        {
+            state.inCheck = Threats(state, state.whiteKing) != 0;
+        } else {
+            state.inCheck = Threats(state, state.blackKing) != 0;
+        }
         state.turnIsWhite = !state.turnIsWhite;
     }
 
