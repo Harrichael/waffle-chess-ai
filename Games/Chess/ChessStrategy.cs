@@ -19,6 +19,8 @@ public static class ChessStrategy
     static byte PawnAdv3Material = 45;
     static byte PawnAdv4Material = 50;
     static byte PawnAdv5Material = 55;
+    static byte PawnOutmostFilePenalty = 30;
+    static byte PawnOuterFilePenalty = 20;
 
     static byte KingPositionValue   = 12;
     static byte QueenPositionValue  = 9;
@@ -31,7 +33,7 @@ public static class ChessStrategy
     static byte QueenOpenValue  = 3;
     static byte RookOpenValue   = 4;
     static byte BishopOpenValue = 10;
-    static byte KnightOpenValue = 2;
+    static byte KnightOpenValue = 1;
     static byte PawnOpenValue   = 3;
 
     static byte KingAttackValue   = 1;
@@ -45,7 +47,7 @@ public static class ChessStrategy
     static byte QueenDefenseValue  = 4;
     static byte RookDefenseValue   = 5;
     static byte BishopDefenseValue = 7;
-    static byte KnightDefenseValue = 4;
+    static byte KnightDefenseValue = 2;
     static byte PawnDefenseValue   = 10;
 
     public static T RandomSelect<T>(List<T> sequence)
@@ -200,6 +202,8 @@ public static class ChessStrategy
             whiteMaterial = whiteMaterial + PawnAdv3Material * CountBits(state.whitePawns & ChessRules.Rank5);
             whiteMaterial = whiteMaterial + PawnAdv4Material * CountBits(state.whitePawns & ChessRules.Rank6);
             whiteMaterial = whiteMaterial + PawnAdv5Material * CountBits(state.whitePawns & ChessRules.Rank7);
+            whiteMaterial = whiteMaterial - PawnOutmostFilePenalty * CountBits(state.whitePawns & (ChessRules.AFile | ChessRules.HFile));
+            whiteMaterial = whiteMaterial - PawnOuterFilePenalty * CountBits(state.whitePawns & (ChessRules.BFile | ChessRules.GFile));
 
             whiteMaterial = whiteMaterial + RookMaterial * CountBits(state.whiteRooks);
             whiteMaterial = whiteMaterial + KnightMaterial * CountBits(state.whiteKnights);
@@ -213,6 +217,8 @@ public static class ChessStrategy
             blackMaterial = blackMaterial + PawnAdv3Material * CountBits(state.blackPawns & ChessRules.Rank4);
             blackMaterial = blackMaterial + PawnAdv4Material * CountBits(state.blackPawns & ChessRules.Rank3);
             blackMaterial = blackMaterial + PawnAdv5Material * CountBits(state.blackPawns & ChessRules.Rank2);
+            blackMaterial = blackMaterial - PawnOutmostFilePenalty * CountBits(state.blackPawns & (ChessRules.AFile | ChessRules.HFile));
+            blackMaterial = blackMaterial - PawnOuterFilePenalty * CountBits(state.blackPawns & (ChessRules.BFile | ChessRules.GFile));
 
             blackMaterial = blackMaterial + RookMaterial * CountBits(state.blackRooks);
             blackMaterial = blackMaterial + KnightMaterial * CountBits(state.blackKnights);
