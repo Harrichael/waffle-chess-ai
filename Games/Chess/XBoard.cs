@@ -26,11 +26,13 @@ public class XBoard
     public UInt64 open;
 
     public bool turnIsWhite;
-    public bool inCheck;
+    public bool whiteCheck;
+    public bool blackCheck;
     public bool whiteCastleKS;
     public bool whiteCastleQS;
     public bool blackCastleKS;
     public bool blackCastleQS;
+    public byte halfMoveClock;
     public UInt64 enPassTile;
 
     public XBoard()
@@ -76,7 +78,8 @@ public class XBoard
                  (this.pieces        == obj.pieces)        &&
                  (this.open          == obj.open)          &&
                  (this.turnIsWhite   == obj.turnIsWhite)   &&
-                 (this.inCheck       == obj.inCheck)
+                 (this.whiteCheck    == obj.whiteCheck)    &&
+                 (this.blackCheck    == obj.blackCheck)
         );
     }
 

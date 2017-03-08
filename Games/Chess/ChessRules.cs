@@ -38,6 +38,10 @@ public static class ChessRules
     public static readonly UInt64 NotAFile = ~AFile;
     public static readonly UInt64 NotHFile = ~HFile;
 
+    /* For Castling */
+    public static readonly UInt64 kingStarts       = 0x0800000000000008;
+    public static readonly UInt64 kingDests        = 0x2200000000000022;
+
     public static readonly UInt64 whiteKingStart   = 0x0000000000000008;
     public static readonly UInt64 whiteKSRookStart = 0x0000000000000001;
     public static readonly UInt64 whiteQSRookStart = 0x0000000000000080;
@@ -290,9 +294,9 @@ public static class ChessRules
             }
         } // End King
         { // Handle Castling
-            if (!state.inCheck)
+            if (state.turnIsWhite)
             {
-                if (state.turnIsWhite)
+                if (!state.whiteCheck)
                 {
                     if (state.whiteCastleKS && ((state.open & whiteKSSpace) == whiteKSSpace))
                     {
@@ -302,7 +306,10 @@ public static class ChessRules
                     {
                         neighbors.Add( new XAction(state.whiteKing, whiteQSDest, castleSettings, PieceType.Castle) );
                     }
-                } else {
+                }
+            } else {
+                if (!state.blackCheck)
+                {
                     if (state.blackCastleKS && ((state.open & blackKSSpace) == blackKSSpace))
                     {
                         neighbors.Add( new XAction(state.blackKing, blackKSDest, castleSettings, PieceType.Castle) );
@@ -461,19 +468,20 @@ public static class ChessRules
             }
         } // End Bishops and QueenBishops
         { // Handle Check
-            UInt64 king;
             foreach (XAction neighbor in neighbors)
             {
                 Apply(state, neighbor);
                 if (state.turnIsWhite)
                 {
-                    king = state.blackKing;
+                    if (state.blackCheck)
+                    {
+                        invalidNeighbors.Add(neighbor);
+                    }
                 } else {
-                    king = state.whiteKing;
-                }
-                if (Threats(state, king) != 0)
-                {
-                    invalidNeighbors.Add(neighbor);
+                    if (state.whiteCheck)
+                    {
+                        invalidNeighbors.Add(neighbor);
+                    }
                 }
                 Undo(state, neighbor);
             }
@@ -645,7 +653,7 @@ public static class ChessRules
                     }
                     if (action.promotionType != PieceType.None)
                     {
-                        state.whitePawns = state.whitePawns & ~action.destTile;
+                        state.whitePawns = state.whitePawns & ~action.srcTile;
                         switch (action.promotionType)
                         {
                             case (PieceType.Queen):
@@ -748,7 +756,7 @@ public static class ChessRules
                     }
                     if (action.promotionType != PieceType.None)
                     {
-                        state.blackPawns = state.blackPawns & ~action.destTile;
+                        state.blackPawns = state.blackPawns & ~action.srcTile;
                         switch (action.promotionType)
                         {
                             case (PieceType.Queen):
@@ -843,13 +851,9 @@ public static class ChessRules
         }
         state.pieces = state.whitePieces | state.blackPieces;
         state.open = ~state.pieces;
-        if (state.turnIsWhite)
-        {
-            state.inCheck = Threats(state, state.whiteKing) != 0;
-        } else {
-            state.inCheck = Threats(state, state.blackKing) != 0;
-        }
         state.turnIsWhite = !state.turnIsWhite;
+        state.whiteCheck = Threats(state, state.whiteKing) != 0;
+        state.blackCheck = Threats(state, state.blackKing) != 0;
     }
 
     public static void Undo(XBoard state, XAction action)
@@ -866,26 +870,23 @@ public static class ChessRules
             {
                 case PieceType.Pawn:
                     state.whitePieces = (state.whitePieces | action.srcTile) & ~action.destTile;
+                    state.whitePawns = state.whitePawns | action.srcTile;
                     switch (action.promotionType)
                     {
                         case PieceType.Queen:
                             state.whiteQueens = state.whiteQueens & ~action.destTile;
-                            state.whitePawns = state.whitePawns | action.srcTile;
                         break;
                         case PieceType.Knight:
                             state.whiteKnights = state.whiteKnights & ~action.destTile;
-                            state.whitePawns = state.whitePawns | action.srcTile;
                         break;
                         case PieceType.Bishop:
                             state.whiteBishops = state.whiteBishops & ~action.destTile;
-                            state.whitePawns = state.whitePawns | action.srcTile;
                         break;
                         case PieceType.Rook:
                             state.whiteRooks = state.whiteRooks & ~action.destTile;
-                            state.whitePawns = state.whitePawns | action.srcTile;
                         break;
                         case PieceType.None:
-                            state.whitePawns = (state.whitePawns | action.srcTile) & ~action.destTile;
+                            state.whitePawns = state.whitePawns & ~action.destTile;
                         break;
                     }
                 break;
@@ -953,26 +954,23 @@ public static class ChessRules
             {
                 case PieceType.Pawn:
                     state.blackPieces = (state.blackPieces | action.srcTile) & ~action.destTile;
+                    state.blackPawns = state.blackPawns | action.srcTile;
                     switch (action.promotionType)
                     {
                         case PieceType.Queen:
                             state.blackQueens = state.blackQueens & ~action.destTile;
-                            state.blackPawns = state.blackPawns | action.srcTile;
                         break;
                         case PieceType.Knight:
                             state.blackKnights = state.blackKnights & ~action.destTile;
-                            state.blackPawns = state.blackPawns | action.srcTile;
                         break;
                         case PieceType.Bishop:
                             state.blackBishops = state.blackBishops & ~action.destTile;
-                            state.blackPawns = state.blackPawns | action.srcTile;
                         break;
                         case PieceType.Rook:
                             state.blackRooks = state.blackRooks & ~action.destTile;
-                            state.blackPawns = state.blackPawns | action.srcTile;
                         break;
                         case PieceType.None:
-                            state.blackPawns = (state.blackPawns | action.srcTile) & ~action.destTile;
+                            state.blackPawns = state.blackPawns & ~action.destTile;
                         break;
                     }
                 break;

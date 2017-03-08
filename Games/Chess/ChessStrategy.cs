@@ -90,7 +90,10 @@ public static class ChessStrategy
         var children = ChessRules.LegalMoves(state);
         if (children.Count() == 0) // Is terminal
         {
-            if (state.inCheck) // Check Mate
+            if (state.turnIsWhite && state.whiteCheck) // Check Mate
+            {
+                return Int64.MinValue;
+            } else if (state.blackCheck && !state.turnIsWhite)
             {
                 return Int64.MinValue;
             } else { // Stalemate
@@ -126,7 +129,10 @@ public static class ChessStrategy
         var children = ChessRules.LegalMoves(state);
         if (children.Count() == 0) // Is terminal
         {
-            if (state.inCheck) // Check Mate
+            if (state.whiteCheck && state.turnIsWhite) // Check Mate
+            {
+                return Int64.MaxValue;
+            } else if (state.blackCheck && !state.turnIsWhite)
             {
                 return Int64.MaxValue;
             } else { // Stalemate
