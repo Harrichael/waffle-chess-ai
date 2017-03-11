@@ -437,7 +437,7 @@ public static class ChessRules
                         invalidNeighbors.Add(neighbor);
                     }
                 }
-                state.Undo(neighbor);
+                state.Undo();
             }
         }
 

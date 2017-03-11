@@ -66,12 +66,12 @@ public static class ChessStrategy
         var bestChild = children[0];
         state.Apply(bestChild);
         var bestVal = DL_Min(state, depth-1, playerIsWhite);
-        state.Undo(bestChild);
+        state.Undo();
         foreach(var child in children)
         {
             state.Apply(child);
             var val = DL_Min(state, depth-1, playerIsWhite);
-            state.Undo(child);
+            state.Undo();
             if (val > bestVal)
             {
                 bestChild = child;
@@ -105,13 +105,13 @@ public static class ChessStrategy
 
         state.Apply(children[0]);
         var maxH = DL_Min(state, depth-1, maxWhite);
-        state.Undo(children[0]);
+        state.Undo();
 
         foreach(var child in children.Skip(1))
         {
             state.Apply(child);
             var hVal = DL_Min(state, depth-1, maxWhite);
-            state.Undo(child);
+            state.Undo();
 
             if (hVal > maxH)
             {
@@ -144,13 +144,13 @@ public static class ChessStrategy
 
         state.Apply(children[0]);
         var minH = DL_Max(state, depth-1, maxWhite);
-        state.Undo(children[0]);
+        state.Undo();
 
         foreach(var child in children.Skip(1))
         {
             state.Apply(child);
             var hVal = DL_Max(state, depth-1, maxWhite);
-            state.Undo(child);
+            state.Undo();
 
             if (hVal < minH)
             {
@@ -168,7 +168,7 @@ public static class ChessStrategy
         state.Apply(sequence[0]);
         bestH = Heuristic(state, playerIsWhite);
         bestActions.Add(sequence[0]);
-        state.Undo(sequence[0]);
+        state.Undo();
         foreach (var action in sequence.Skip(1))
         {
             state.Apply(action);
@@ -183,7 +183,7 @@ public static class ChessStrategy
             {
                 bestActions.Add(action);
             }
-            state.Undo(action);
+            state.Undo();
         }
 
         Console.WriteLine("Evaluation: " + bestH);

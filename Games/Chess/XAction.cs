@@ -31,10 +31,9 @@ public class XAction
 
     public override int GetHashCode()
     {
-        return ( (int)this.pieceType * 67 + 
-                 this.srcTile.GetHashCode() * 23 +
+        return ( this.srcTile.GetHashCode() * 23 +
                  this.destTile.GetHashCode() * 17 +
-                 this.promotionType.GetHashCode() * 17
+                 (int)this.promotionType * 67
                );
     }
 
@@ -42,7 +41,6 @@ public class XAction
     {
         return ( (this.srcTile == action.srcTile)             &&
                  (this.destTile == action.destTile)           &&
-                 (this.pieceType == action.pieceType)         &&
                  (this.promotionType == action.promotionType)
         );
     }

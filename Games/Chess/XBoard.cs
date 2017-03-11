@@ -26,6 +26,7 @@ public class XBoard
     public UInt64 pieces;
     public UInt64 open;
 
+    public UInt64 enPassTile;
     public bool turnIsWhite;
     public bool whiteCheck;
     public bool blackCheck;
@@ -34,11 +35,12 @@ public class XBoard
     public bool blackCastleKS;
     public bool blackCastleQS;
     public byte halfMoveClock;
-    public UInt64 enPassTile;
+
+    private Stack<XAction> actionHistory;
 
     public XBoard()
     {
-        // instance variables auto assigned to 0
+        actionHistory = new Stack<XAction>();
     }
 
     public void updatePieces()
@@ -86,6 +88,7 @@ public class XBoard
 
     public void Apply(XAction action)
     {
+        this.actionHistory.Push(action);
         this.enPassTile = 0;
         if (this.turnIsWhite)
         {
@@ -302,8 +305,9 @@ public class XBoard
         this.blackCheck = Threats(this, this.blackKing) != 0;
     }
 
-    public void Undo(XAction action)
+    public void Undo()
     {
+        var action = this.actionHistory.Pop();
         this.turnIsWhite = !this.turnIsWhite;
         this.enPassTile = 0;
         this.whiteCastleKS = (action.castleSettings & 0x1) != 0;
