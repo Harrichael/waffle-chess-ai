@@ -37,10 +37,12 @@ public class XBoard
     public byte halfMoveClock;
 
     private Stack<XAction> actionHistory;
+    private Stack<XActionUndoData> actionUndoHistory;
 
     public XBoard()
     {
-        actionHistory = new Stack<XAction>();
+        this.actionHistory = new Stack<XAction>();
+        this.actionUndoHistory = new Stack<XActionUndoData>();
     }
 
     public void updatePieces()
@@ -89,6 +91,10 @@ public class XBoard
     public void Apply(XAction action)
     {
         this.actionHistory.Push(action);
+        this.actionUndoHistory.Push(new XActionUndoData(
+            (byte)( (Convert.ToByte(this.whiteCastleKS)) & (Convert.ToByte(this.whiteCastleQS) << 1) & (Convert.ToByte(this.blackCastleKS) << 2) & (Convert.ToByte(this.blackCastleQS) << 3) )
+        
+        ));
         this.enPassTile = 0;
         if (this.turnIsWhite)
         {
@@ -308,12 +314,13 @@ public class XBoard
     public void Undo()
     {
         var action = this.actionHistory.Pop();
+        var castleSettings = this.actionUndoHistory.Pop().castleSettings;
         this.turnIsWhite = !this.turnIsWhite;
         this.enPassTile = 0;
-        this.whiteCastleKS = (action.castleSettings & 0x1) != 0;
-        this.whiteCastleQS = (action.castleSettings & 0x2) != 0;
-        this.blackCastleKS = (action.castleSettings & 0x4) != 0;
-        this.blackCastleQS = (action.castleSettings & 0x8) != 0;
+        this.whiteCastleKS = (castleSettings & 0x1) != 0;
+        this.whiteCastleQS = (castleSettings & 0x2) != 0;
+        this.blackCastleKS = (castleSettings & 0x4) != 0;
+        this.blackCastleQS = (castleSettings & 0x8) != 0;
         if (this.turnIsWhite)
         {
             switch (action.pieceType)

@@ -157,16 +157,10 @@ public class ChessEngine
         }
         PieceType attackedPiece = this.pieceAtTile(destTile);
         PieceType promotePiece = (PieceType)Enum.Parse(typeof(PieceType), promote);
-        byte castleSettings = (byte)( (Convert.ToByte(this.board.whiteCastleKS))      &
-                                      (Convert.ToByte(this.board.whiteCastleQS) << 1) &
-                                      (Convert.ToByte(this.board.blackCastleKS) << 2) &
-                                      (Convert.ToByte(this.board.blackCastleQS) << 3)
-                                    );
 
         var action = new XAction(
             srcTile,
             destTile,
-            castleSettings,
             movedPiece,
             attackedPiece,
             promotePiece

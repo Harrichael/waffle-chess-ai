@@ -67,11 +67,6 @@ public static class ChessRules
         var neighbors = new List<XAction>();
         var invalidNeighbors = new HashSet<XAction>();
         var opponentPT = new Dictionary<UInt64, PieceType>();
-        byte castleSettings = (byte)( (Convert.ToByte(state.whiteCastleKS))      &
-                                      (Convert.ToByte(state.whiteCastleQS) << 1) &
-                                      (Convert.ToByte(state.blackCastleKS) << 2) &
-                                      (Convert.ToByte(state.blackCastleQS) << 3)
-                                    );
         { // Precompute an opponent piece type dict, we use this for O(1) retrieval of attacked type for XAction construction
             var pieceBBs = new List<UInt64>();
             PieceType[] pts = {PieceType.Pawn, PieceType.Rook, PieceType.Knight, PieceType.Bishop, PieceType.Queen};
@@ -163,22 +158,22 @@ public static class ChessRules
                     {
                         if (i > 1)
                         {
-                            neighbors.Add( new XAction(src, dest, castleSettings, PieceType.Pawn, attack:opponentPT[dest]) );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, attack:opponentPT[dest]) );
                         } else {
-                            neighbors.Add( new XAction(src, dest, castleSettings, PieceType.Pawn) );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn) );
                         }
                     } else {
                         if (i > 1)
                         {
-                            neighbors.Add( new XAction(src, dest, castleSettings, PieceType.Pawn, attack:opponentPT[dest], promote:PieceType.Queen) );
-                            neighbors.Add( new XAction(src, dest, castleSettings, PieceType.Pawn, attack:opponentPT[dest], promote:PieceType.Knight) );
-                            neighbors.Add( new XAction(src, dest, castleSettings, PieceType.Pawn, attack:opponentPT[dest], promote:PieceType.Bishop) );
-                            neighbors.Add( new XAction(src, dest, castleSettings, PieceType.Pawn, attack:opponentPT[dest], promote:PieceType.Rook) );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, attack:opponentPT[dest], promote:PieceType.Queen) );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, attack:opponentPT[dest], promote:PieceType.Knight) );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, attack:opponentPT[dest], promote:PieceType.Bishop) );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, attack:opponentPT[dest], promote:PieceType.Rook) );
                         } else {
-                            neighbors.Add( new XAction(src, dest, castleSettings, PieceType.Pawn, promote:PieceType.Queen) );
-                            neighbors.Add( new XAction(src, dest, castleSettings, PieceType.Pawn, promote:PieceType.Knight) );
-                            neighbors.Add( new XAction(src, dest, castleSettings, PieceType.Pawn, promote:PieceType.Bishop) );
-                            neighbors.Add( new XAction(src, dest, castleSettings, PieceType.Pawn, promote:PieceType.Rook) );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:PieceType.Queen) );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:PieceType.Knight) );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:PieceType.Bishop) );
+                            neighbors.Add( new XAction(src, dest, PieceType.Pawn, promote:PieceType.Rook) );
                         }
                     }
 
@@ -212,9 +207,9 @@ public static class ChessRules
                     knightAttacks = knightAttacks - knightAttack;
                     if ((knightAttack & opponentPieces) != 0)
                     {
-                        neighbors.Add( new XAction(knight, knightAttack, castleSettings, PieceType.Knight, attack:opponentPT[knightAttack]) );
+                        neighbors.Add( new XAction(knight, knightAttack, PieceType.Knight, attack:opponentPT[knightAttack]) );
                     } else {
-                        neighbors.Add( new XAction(knight, knightAttack, castleSettings, PieceType.Knight) );
+                        neighbors.Add( new XAction(knight, knightAttack, PieceType.Knight) );
                     }
                 }
             }
@@ -241,9 +236,9 @@ public static class ChessRules
                 kingAttacks = kingAttacks - kingAttack;
                 if ((kingAttack & opponentPieces) != 0)
                 {
-                    neighbors.Add( new XAction(king, kingAttack, castleSettings, PieceType.King, attack:opponentPT[kingAttack]) );
+                    neighbors.Add( new XAction(king, kingAttack, PieceType.King, attack:opponentPT[kingAttack]) );
                 } else {
-                    neighbors.Add( new XAction(king, kingAttack, castleSettings, PieceType.King) );
+                    neighbors.Add( new XAction(king, kingAttack, PieceType.King) );
                 }
             }
         } // End King
@@ -254,11 +249,11 @@ public static class ChessRules
                 {
                     if (state.whiteCastleKS && ((state.open & whiteKSSpace) == whiteKSSpace))
                     {
-                        neighbors.Add( new XAction(state.whiteKing, whiteKSDest, castleSettings, PieceType.Castle) );
+                        neighbors.Add( new XAction(state.whiteKing, whiteKSDest, PieceType.Castle) );
                     }
                     if (state.whiteCastleQS && ((state.open & whiteQSSpace) == whiteQSSpace))
                     {
-                        neighbors.Add( new XAction(state.whiteKing, whiteQSDest, castleSettings, PieceType.Castle) );
+                        neighbors.Add( new XAction(state.whiteKing, whiteQSDest, PieceType.Castle) );
                     }
                 }
             } else {
@@ -266,11 +261,11 @@ public static class ChessRules
                 {
                     if (state.blackCastleKS && ((state.open & blackKSSpace) == blackKSSpace))
                     {
-                        neighbors.Add( new XAction(state.blackKing, blackKSDest, castleSettings, PieceType.Castle) );
+                        neighbors.Add( new XAction(state.blackKing, blackKSDest, PieceType.Castle) );
                     }
                     if (state.blackCastleQS && ((state.open & blackQSSpace) == blackQSSpace))
                     {
-                        neighbors.Add( new XAction(state.blackKing, blackQSDest, castleSettings, PieceType.Castle) );
+                        neighbors.Add( new XAction(state.blackKing, blackQSDest, PieceType.Castle) );
                     }
                 }
             }
@@ -341,9 +336,9 @@ public static class ChessRules
                     rookAttacks = rookAttacks - rookAttack;
                     if ((rookAttack & opponentPieces) != 0)
                     {
-                        neighbors.Add( new XAction(rook, rookAttack, castleSettings, ( ((rook & realRooks) != 0) ? PieceType.Rook : PieceType.Queen ), attack:opponentPT[rookAttack] ) );
+                        neighbors.Add( new XAction(rook, rookAttack, ( ((rook & realRooks) != 0) ? PieceType.Rook : PieceType.Queen ), attack:opponentPT[rookAttack] ) );
                     } else {
-                        neighbors.Add( new XAction(rook, rookAttack, castleSettings, ( ((rook & realRooks) != 0) ? PieceType.Rook : PieceType.Queen ) ) );
+                        neighbors.Add( new XAction(rook, rookAttack, ( ((rook & realRooks) != 0) ? PieceType.Rook : PieceType.Queen ) ) );
                     }
                 }
             }
@@ -414,9 +409,9 @@ public static class ChessRules
                     bishopAttacks = bishopAttacks - bishopAttack;
                     if ((bishopAttack & opponentPieces) != 0)
                     {
-                        neighbors.Add( new XAction(bishop, bishopAttack, castleSettings, ( ((bishop & realBishops) != 0) ? PieceType.Bishop : PieceType.Queen ), attack:opponentPT[bishopAttack] ) );
+                        neighbors.Add( new XAction(bishop, bishopAttack, ( ((bishop & realBishops) != 0) ? PieceType.Bishop : PieceType.Queen ), attack:opponentPT[bishopAttack] ) );
                     } else {
-                        neighbors.Add( new XAction(bishop, bishopAttack, castleSettings, ( ((bishop & realBishops) != 0) ? PieceType.Bishop : PieceType.Queen ) ) );
+                        neighbors.Add( new XAction(bishop, bishopAttack, ( ((bishop & realBishops) != 0) ? PieceType.Bishop : PieceType.Queen ) ) );
                     }
                 }
             }
