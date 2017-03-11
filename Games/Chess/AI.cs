@@ -29,7 +29,7 @@ namespace Joueur.cs.Games.Chess
         /// <summary>
         /// The Chess AI Engine, implements a fen constructor, OpponentMove and MakeMove
         /// </summary>
-        public ChessEngine engine;
+        private ChessEngine engine;
 
         #pragma warning restore 0169
         #pragma warning restore 0649
@@ -97,8 +97,13 @@ namespace Joueur.cs.Games.Chess
                 var lastMove = this.Game.Moves.Last();
                 string fromFR = lastMove.FromFile + lastMove.FromRank;
                 string toFR = lastMove.ToFile + lastMove.ToRank;
+                string promote = lastMove.Promotion;
                 Console.WriteLine("Opponents Last Move: " + fromFR + "    " + toFR);
-                this.engine.OpponentMove(fromFR, toFR, lastMove.Promotion);
+                if (promote == "")
+                {
+                    promote = "None";
+                }
+                this.engine.OpponentMove(fromFR, toFR, promote);
             }
             this.PrintCurrentBoard();
             var moveStrings = this.engine.MakeMove();

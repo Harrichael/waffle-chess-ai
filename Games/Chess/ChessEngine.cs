@@ -5,8 +5,8 @@ using System.Linq;
 
 public class ChessEngine
 {
-    XBoard board;
-    bool aiIsWhite;
+    private XBoard board;
+    private bool aiIsWhite;
 
     /// <summary>
     /// Initialize the engine with the board state, does not need to be standard start
@@ -137,7 +137,7 @@ public class ChessEngine
         }
         Console.WriteLine("   +------------------------+");
         Console.WriteLine("     a  b  c  d  e  f  g  h");
-    }
+    } // End Print
 
     /// <summary>
     /// Call when opponent makes move. Trusts caller to call when actually is time for opponent
@@ -147,18 +147,15 @@ public class ChessEngine
         UInt64 srcTile = this.frToTile(fromFR);
         UInt64 destTile = this.frToTile(toFR);
         PieceType movedPiece = this.pieceAtTile(srcTile);
-        if (movedPiece == PieceType.King) // Might be a castle
+        if (movedPiece == PieceType.King)
         {
+            // Might be a castle, castle is in implicit super-piece representation of king and rook
             if ((srcTile & ChessRules.kingStarts) != 0 && (destTile & ChessRules.kingDests) != 0)
             {
                 movedPiece = PieceType.Castle;
             }
         }
         PieceType attackedPiece = this.pieceAtTile(destTile);
-        if (promote == "")
-        {
-            promote = "None";
-        }
         PieceType promotePiece = (PieceType)Enum.Parse(typeof(PieceType), promote);
         byte castleSettings = (byte)( (Convert.ToByte(this.board.whiteCastleKS))      &
                                       (Convert.ToByte(this.board.whiteCastleQS) << 1) &
@@ -175,14 +172,13 @@ public class ChessEngine
             promotePiece
         );
         
-        // this.board.Apply(action); //TODO: remake interface
-        ChessRules.Apply(this.board, action);
+        this.board.Apply(action);
     } // End Opponent Move
 
     public Tuple<string, string, string> MakeMove()
     {
         var action = ChessStrategy.DL_Minimax(this.board, 2, this.aiIsWhite);
-        ChessRules.Apply(this.board, action);
+        this.board.Apply(action);
         return Tuple.Create( this.tileToFR(action.srcTile),
                              this.tileToFR(action.destTile),
                              action.promotionType.ToString()
@@ -340,7 +336,7 @@ public class ChessEngine
         }
         Console.WriteLine("Invalid tile: " + tile);
         throw new System.Exception();
-    } // End tile to fr method
+    } // End tile to file rank method
 
     private PieceType pieceAtTile(UInt64 tile)
     {
@@ -368,6 +364,6 @@ public class ChessEngine
         } else {
             return PieceType.None;
         }
-    }
+    } // End piece at tile method
 
 }

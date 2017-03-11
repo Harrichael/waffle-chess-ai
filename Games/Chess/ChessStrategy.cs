@@ -62,14 +62,14 @@ public static class ChessStrategy
     {
         var children = ChessRules.LegalMoves(state);
         var bestChild = children[0];
-        ChessRules.Apply(state, bestChild);
+        state.Apply(bestChild);
         var bestVal = DL_Min(state, depth-1, playerIsWhite);
-        ChessRules.Undo(state, bestChild);
+        state.Undo(bestChild);
         foreach(var child in children)
         {
-            ChessRules.Apply(state, child);
+            state.Apply(child);
             var val = DL_Min(state, depth-1, playerIsWhite);
-            ChessRules.Undo(state, child);
+            state.Undo(child);
             if (val > bestVal)
             {
                 bestChild = child;
@@ -101,15 +101,15 @@ public static class ChessStrategy
             }
         }
 
-        ChessRules.Apply(state, children[0]);
+        state.Apply(children[0]);
         var maxH = DL_Min(state, depth-1, maxWhite);
-        ChessRules.Undo(state, children[0]);
+        state.Undo(children[0]);
 
         foreach(var child in children.Skip(1))
         {
-            ChessRules.Apply(state, child);
+            state.Apply(child);
             var hVal = DL_Min(state, depth-1, maxWhite);
-            ChessRules.Undo(state, child);
+            state.Undo(child);
 
             if (hVal > maxH)
             {
@@ -140,15 +140,15 @@ public static class ChessStrategy
             }
         }
 
-        ChessRules.Apply(state, children[0]);
+        state.Apply(children[0]);
         var minH = DL_Max(state, depth-1, maxWhite);
-        ChessRules.Undo(state, children[0]);
+        state.Undo(children[0]);
 
         foreach(var child in children.Skip(1))
         {
-            ChessRules.Apply(state, child);
+            state.Apply(child);
             var hVal = DL_Max(state, depth-1, maxWhite);
-            ChessRules.Undo(state, child);
+            state.Undo(child);
 
             if (hVal < minH)
             {
@@ -163,13 +163,13 @@ public static class ChessStrategy
         var bestActions = new List<XAction>();
         Int64 bestH;
 
-        ChessRules.Apply(state, sequence[0]);
+        state.Apply(sequence[0]);
         bestH = Heuristic(state, playerIsWhite);
         bestActions.Add(sequence[0]);
-        ChessRules.Undo(state, sequence[0]);
+        state.Undo(sequence[0]);
         foreach (var action in sequence.Skip(1))
         {
-            ChessRules.Apply(state, action);
+            state.Apply(action);
             Int64 val = Heuristic(state, playerIsWhite);
             if (val > bestH)
             {
@@ -181,7 +181,7 @@ public static class ChessStrategy
             {
                 bestActions.Add(action);
             }
-            ChessRules.Undo(state, action);
+            state.Undo(action);
         }
 
         Console.WriteLine("Evaluation: " + bestH);
