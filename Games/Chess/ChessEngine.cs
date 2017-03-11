@@ -85,8 +85,8 @@ public class ChessEngine
         this.board.enPassTile = this.frToTile(fenFields[3]);
         this.board.halfMoveClock = byte.Parse(fenFields[4]);
         this.board.updatePieces();
-        this.board.whiteCheck = Threats(this.board, this.board.whiteKing) != 0;
-        this.board.blackCheck = Threats(this.board, this.board.blackKing) != 0;
+        this.board.whiteCheck = ChessRules.Threats(this.board, this.board.whiteKing) != 0;
+        this.board.blackCheck = ChessRules.Threats(this.board, this.board.blackKing) != 0;
 
     } // End fen constructor method
 
