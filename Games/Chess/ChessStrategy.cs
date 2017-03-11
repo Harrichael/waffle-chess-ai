@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using static ChessRules;
+
 public static class ChessStrategy
 {
 
@@ -60,7 +62,7 @@ public static class ChessStrategy
 
     public static XAction DL_Minimax(XBoard state, int depth, bool playerIsWhite)
     {
-        var children = ChessRules.LegalMoves(state);
+        var children = LegalMoves(state);
         var bestChild = children[0];
         state.Apply(bestChild);
         var bestVal = DL_Min(state, depth-1, playerIsWhite);
@@ -87,7 +89,7 @@ public static class ChessStrategy
             return Heuristic(state, maxWhite);
         }
 
-        var children = ChessRules.LegalMoves(state);
+        var children = LegalMoves(state);
         if (children.Count() == 0) // Is terminal
         {
             if (state.turnIsWhite && state.whiteCheck) // Check Mate
@@ -126,7 +128,7 @@ public static class ChessStrategy
             return Heuristic(state, maxWhite);
         }
 
-        var children = ChessRules.LegalMoves(state);
+        var children = LegalMoves(state);
         if (children.Count() == 0) // Is terminal
         {
             if (state.whiteCheck && state.turnIsWhite) // Check Mate
@@ -205,14 +207,14 @@ public static class ChessStrategy
         UInt64 whiteMaterial = 0;
         UInt64 blackMaterial = 0;
         { // White Material
-            whiteMaterial = whiteMaterial + PawnAdv0Material * CountBits(state.whitePawns & ChessRules.Rank2);
-            whiteMaterial = whiteMaterial + PawnAdv1Material * CountBits(state.whitePawns & ChessRules.Rank3);
-            whiteMaterial = whiteMaterial + PawnAdv2Material * CountBits(state.whitePawns & ChessRules.Rank4);
-            whiteMaterial = whiteMaterial + PawnAdv3Material * CountBits(state.whitePawns & ChessRules.Rank5);
-            whiteMaterial = whiteMaterial + PawnAdv4Material * CountBits(state.whitePawns & ChessRules.Rank6);
-            whiteMaterial = whiteMaterial + PawnAdv5Material * CountBits(state.whitePawns & ChessRules.Rank7);
-            whiteMaterial = whiteMaterial - PawnOutmostFilePenalty * CountBits(state.whitePawns & (ChessRules.AFile | ChessRules.HFile));
-            whiteMaterial = whiteMaterial - PawnOuterFilePenalty * CountBits(state.whitePawns & (ChessRules.BFile | ChessRules.GFile));
+            whiteMaterial = whiteMaterial + PawnAdv0Material * CountBits(state.whitePawns & Rank2);
+            whiteMaterial = whiteMaterial + PawnAdv1Material * CountBits(state.whitePawns & Rank3);
+            whiteMaterial = whiteMaterial + PawnAdv2Material * CountBits(state.whitePawns & Rank4);
+            whiteMaterial = whiteMaterial + PawnAdv3Material * CountBits(state.whitePawns & Rank5);
+            whiteMaterial = whiteMaterial + PawnAdv4Material * CountBits(state.whitePawns & Rank6);
+            whiteMaterial = whiteMaterial + PawnAdv5Material * CountBits(state.whitePawns & Rank7);
+            whiteMaterial = whiteMaterial - PawnOutmostFilePenalty * CountBits(state.whitePawns & (AFile | HFile));
+            whiteMaterial = whiteMaterial - PawnOuterFilePenalty * CountBits(state.whitePawns & (BFile | GFile));
 
             whiteMaterial = whiteMaterial + RookMaterial * CountBits(state.whiteRooks);
             whiteMaterial = whiteMaterial + KnightMaterial * CountBits(state.whiteKnights);
@@ -220,14 +222,14 @@ public static class ChessStrategy
             whiteMaterial = whiteMaterial + QueenMaterial * CountBits(state.whiteQueens);
         } // End White Material
         { // Black Material
-            blackMaterial = blackMaterial + PawnAdv0Material * CountBits(state.blackPawns & ChessRules.Rank7);
-            blackMaterial = blackMaterial + PawnAdv1Material * CountBits(state.blackPawns & ChessRules.Rank6);
-            blackMaterial = blackMaterial + PawnAdv2Material * CountBits(state.blackPawns & ChessRules.Rank5);
-            blackMaterial = blackMaterial + PawnAdv3Material * CountBits(state.blackPawns & ChessRules.Rank4);
-            blackMaterial = blackMaterial + PawnAdv4Material * CountBits(state.blackPawns & ChessRules.Rank3);
-            blackMaterial = blackMaterial + PawnAdv5Material * CountBits(state.blackPawns & ChessRules.Rank2);
-            blackMaterial = blackMaterial - PawnOutmostFilePenalty * CountBits(state.blackPawns & (ChessRules.AFile | ChessRules.HFile));
-            blackMaterial = blackMaterial - PawnOuterFilePenalty * CountBits(state.blackPawns & (ChessRules.BFile | ChessRules.GFile));
+            blackMaterial = blackMaterial + PawnAdv0Material * CountBits(state.blackPawns & Rank7);
+            blackMaterial = blackMaterial + PawnAdv1Material * CountBits(state.blackPawns & Rank6);
+            blackMaterial = blackMaterial + PawnAdv2Material * CountBits(state.blackPawns & Rank5);
+            blackMaterial = blackMaterial + PawnAdv3Material * CountBits(state.blackPawns & Rank4);
+            blackMaterial = blackMaterial + PawnAdv4Material * CountBits(state.blackPawns & Rank3);
+            blackMaterial = blackMaterial + PawnAdv5Material * CountBits(state.blackPawns & Rank2);
+            blackMaterial = blackMaterial - PawnOutmostFilePenalty * CountBits(state.blackPawns & (AFile | HFile));
+            blackMaterial = blackMaterial - PawnOuterFilePenalty * CountBits(state.blackPawns & (BFile | GFile));
 
             blackMaterial = blackMaterial + RookMaterial * CountBits(state.blackRooks);
             blackMaterial = blackMaterial + KnightMaterial * CountBits(state.blackKnights);
@@ -244,7 +246,7 @@ public static class ChessStrategy
         UInt64 defendedBlackPositions = 0;
         UInt64 threatenedBlackPositions = 0;
         { // White Pawns
-            UInt64 pawnAttacks = ((state.whitePawns & ChessRules.NotHFile) << 7) | ((state.whitePawns & ChessRules.NotAFile) << 9);
+            UInt64 pawnAttacks = ((state.whitePawns & NotHFile) << 7) | ((state.whitePawns & NotAFile) << 9);
             threatenedBlackPositions = threatenedBlackPositions | (pawnAttacks & state.blackPieces);
             defendedWhitePositions = defendedWhitePositions | (pawnAttacks & state.whitePieces);
             whitePosition = whitePosition + PawnOpenValue * CountBits(pawnAttacks & state.open);
@@ -264,7 +266,7 @@ public static class ChessStrategy
             whitePosition = whitePosition + PawnDefenseValue * CountBits(pawnAttacks & state.whiteKing   ) * KingPositionValue;
         }
         { // Black Pawns
-            UInt64 pawnAttacks = ((state.blackPawns & ChessRules.NotAFile) >> 7) | ((state.blackPawns & ChessRules.NotHFile) >> 9);
+            UInt64 pawnAttacks = ((state.blackPawns & NotAFile) >> 7) | ((state.blackPawns & NotHFile) >> 9);
             threatenedWhitePositions = threatenedWhitePositions | (pawnAttacks & state.whitePieces);
             defendedBlackPositions = defendedBlackPositions | (pawnAttacks & state.blackPieces);
             blackPosition = blackPosition + PawnOpenValue * CountBits(pawnAttacks & state.open);
@@ -289,9 +291,9 @@ public static class ChessStrategy
             UInt64 knight;
             while(knights != 0)
             {
-                knight = ChessRules.MSB(knights);
+                knight = MSB(knights);
                 knights = knights - knight;
-                knightAttacks = knightAttacks | ChessRules.getKnightAttacks(knight);
+                knightAttacks = knightAttacks | getKnightAttacks(knight);
             }
             threatenedBlackPositions = threatenedBlackPositions | (knightAttacks & state.blackPieces);
             defendedWhitePositions = defendedWhitePositions | (knightAttacks & state.whitePieces);
@@ -317,9 +319,9 @@ public static class ChessStrategy
             UInt64 knight;
             while(knights != 0)
             {
-                knight = ChessRules.MSB(knights);
+                knight = MSB(knights);
                 knights = knights - knight;
-                knightAttacks = knightAttacks | ChessRules.getKnightAttacks(knight);
+                knightAttacks = knightAttacks | getKnightAttacks(knight);
             }
             threatenedWhitePositions = threatenedWhitePositions | (knightAttacks & state.whitePieces);
             defendedBlackPositions = defendedBlackPositions | (knightAttacks & state.blackPieces);
@@ -344,39 +346,39 @@ public static class ChessStrategy
             UInt64 addBishopAttacks;
             UInt64 bishops = state.whiteBishops;
             // UpLeft
-            addBishopAttacks = (bishops << 9) & ChessRules.NotHFile;
+            addBishopAttacks = (bishops << 9) & NotHFile;
             while(addBishopAttacks != 0)
             {
                 bishopAttacks = bishopAttacks | addBishopAttacks;
                 addBishopAttacks = addBishopAttacks & state.open;
-                addBishopAttacks = (addBishopAttacks << 9) & ChessRules.NotHFile;
+                addBishopAttacks = (addBishopAttacks << 9) & NotHFile;
             }
             // End UpLeft
             // UpRight
-            addBishopAttacks = (bishops << 7) & ChessRules.NotAFile;
+            addBishopAttacks = (bishops << 7) & NotAFile;
             while(addBishopAttacks != 0)
             {
                 bishopAttacks = bishopAttacks | addBishopAttacks;
                 addBishopAttacks = addBishopAttacks & state.open;
-                addBishopAttacks = (addBishopAttacks << 7) & ChessRules.NotAFile;
+                addBishopAttacks = (addBishopAttacks << 7) & NotAFile;
             }
             // End UpRight
             // DownLeft
-            addBishopAttacks = (bishops >> 7) & ChessRules.NotHFile;
+            addBishopAttacks = (bishops >> 7) & NotHFile;
             while(addBishopAttacks != 0)
             {
                 bishopAttacks = bishopAttacks | addBishopAttacks;
                 addBishopAttacks = addBishopAttacks & state.open;
-                addBishopAttacks = (addBishopAttacks >> 7) & ChessRules.NotHFile;
+                addBishopAttacks = (addBishopAttacks >> 7) & NotHFile;
             }
             // End DownLeft
             // DownRight
-            addBishopAttacks = (bishops >> 9) & ChessRules.NotHFile;
+            addBishopAttacks = (bishops >> 9) & NotHFile;
             while(addBishopAttacks != 0)
             {
                 bishopAttacks = bishopAttacks | addBishopAttacks;
                 addBishopAttacks = addBishopAttacks & state.open;
-                addBishopAttacks = (addBishopAttacks >> 9) & ChessRules.NotHFile;
+                addBishopAttacks = (addBishopAttacks >> 9) & NotHFile;
             }
             // End DownRight
 
@@ -403,39 +405,39 @@ public static class ChessStrategy
             UInt64 addBishopAttacks;
             UInt64 bishops = state.blackBishops;
             // UpLeft
-            addBishopAttacks = (bishops << 9) & ChessRules.NotHFile;
+            addBishopAttacks = (bishops << 9) & NotHFile;
             while(addBishopAttacks != 0)
             {
                 bishopAttacks = bishopAttacks | addBishopAttacks;
                 addBishopAttacks = addBishopAttacks & state.open;
-                addBishopAttacks = (addBishopAttacks << 9) & ChessRules.NotHFile;
+                addBishopAttacks = (addBishopAttacks << 9) & NotHFile;
             }
             // End UpLeft
             // UpRight
-            addBishopAttacks = (bishops << 7) & ChessRules.NotAFile;
+            addBishopAttacks = (bishops << 7) & NotAFile;
             while(addBishopAttacks != 0)
             {
                 bishopAttacks = bishopAttacks | addBishopAttacks;
                 addBishopAttacks = addBishopAttacks & state.open;
-                addBishopAttacks = (addBishopAttacks << 7) & ChessRules.NotAFile;
+                addBishopAttacks = (addBishopAttacks << 7) & NotAFile;
             }
             // End UpRight
             // DownLeft
-            addBishopAttacks = (bishops >> 7) & ChessRules.NotHFile;
+            addBishopAttacks = (bishops >> 7) & NotHFile;
             while(addBishopAttacks != 0)
             {
                 bishopAttacks = bishopAttacks | addBishopAttacks;
                 addBishopAttacks = addBishopAttacks & state.open;
-                addBishopAttacks = (addBishopAttacks >> 7) & ChessRules.NotHFile;
+                addBishopAttacks = (addBishopAttacks >> 7) & NotHFile;
             }
             // End DownLeft
             // DownRight
-            addBishopAttacks = (bishops >> 9) & ChessRules.NotHFile;
+            addBishopAttacks = (bishops >> 9) & NotHFile;
             while(addBishopAttacks != 0)
             {
                 bishopAttacks = bishopAttacks | addBishopAttacks;
                 addBishopAttacks = addBishopAttacks & state.open;
-                addBishopAttacks = (addBishopAttacks >> 9) & ChessRules.NotHFile;
+                addBishopAttacks = (addBishopAttacks >> 9) & NotHFile;
             }
             // End DownRight
 
@@ -481,21 +483,21 @@ public static class ChessStrategy
             }
             // End Down
             // Left
-            addRookAttacks = (rooks << 1) & ChessRules.NotHFile;
+            addRookAttacks = (rooks << 1) & NotHFile;
             while(addRookAttacks != 0)
             {
                 rookAttacks = rookAttacks | addRookAttacks;
                 addRookAttacks = addRookAttacks & state.open;
-                addRookAttacks = (addRookAttacks << 1) & ChessRules.NotHFile;
+                addRookAttacks = (addRookAttacks << 1) & NotHFile;
             }
             // End Left
             // Right
-            addRookAttacks = (rooks >> 1) & ChessRules.NotAFile;
+            addRookAttacks = (rooks >> 1) & NotAFile;
             while(addRookAttacks != 0)
             {
                 rookAttacks = rookAttacks | addRookAttacks;
                 addRookAttacks = addRookAttacks & state.open;
-                addRookAttacks = (addRookAttacks >> 1) & ChessRules.NotAFile;
+                addRookAttacks = (addRookAttacks >> 1) & NotAFile;
             }
             // End Right
 
@@ -541,21 +543,21 @@ public static class ChessStrategy
             }
             // End Down
             // Left
-            addRookAttacks = (rooks << 1) & ChessRules.NotHFile;
+            addRookAttacks = (rooks << 1) & NotHFile;
             while(addRookAttacks != 0)
             {
                 rookAttacks = rookAttacks | addRookAttacks;
                 addRookAttacks = addRookAttacks & state.open;
-                addRookAttacks = (addRookAttacks << 1) & ChessRules.NotHFile;
+                addRookAttacks = (addRookAttacks << 1) & NotHFile;
             }
             // End Left
             // Right
-            addRookAttacks = (rooks >> 1) & ChessRules.NotAFile;
+            addRookAttacks = (rooks >> 1) & NotAFile;
             while(addRookAttacks != 0)
             {
                 rookAttacks = rookAttacks | addRookAttacks;
                 addRookAttacks = addRookAttacks & state.open;
-                addRookAttacks = (addRookAttacks >> 1) & ChessRules.NotAFile;
+                addRookAttacks = (addRookAttacks >> 1) & NotAFile;
             }
             // End Right
 
@@ -582,39 +584,39 @@ public static class ChessStrategy
             UInt64 addQueenAttacks;
             UInt64 queens = state.whiteQueens;
             // UpLeft
-            addQueenAttacks = (queens << 9) & ChessRules.NotHFile;
+            addQueenAttacks = (queens << 9) & NotHFile;
             while(addQueenAttacks != 0)
             {
                 queenAttacks = queenAttacks | addQueenAttacks;
                 addQueenAttacks = addQueenAttacks & state.open;
-                addQueenAttacks = (addQueenAttacks << 9) & ChessRules.NotHFile;
+                addQueenAttacks = (addQueenAttacks << 9) & NotHFile;
             }
             // End UpLeft
             // UpRight
-            addQueenAttacks = (queens << 7) & ChessRules.NotAFile;
+            addQueenAttacks = (queens << 7) & NotAFile;
             while(addQueenAttacks != 0)
             {
                 queenAttacks = queenAttacks | addQueenAttacks;
                 addQueenAttacks = addQueenAttacks & state.open;
-                addQueenAttacks = (addQueenAttacks << 7) & ChessRules.NotAFile;
+                addQueenAttacks = (addQueenAttacks << 7) & NotAFile;
             }
             // End UpRight
             // DownLeft
-            addQueenAttacks = (queens >> 7) & ChessRules.NotHFile;
+            addQueenAttacks = (queens >> 7) & NotHFile;
             while(addQueenAttacks != 0)
             {
                 queenAttacks = queenAttacks | addQueenAttacks;
                 addQueenAttacks = addQueenAttacks & state.open;
-                addQueenAttacks = (addQueenAttacks >> 7) & ChessRules.NotHFile;
+                addQueenAttacks = (addQueenAttacks >> 7) & NotHFile;
             }
             // End DownLeft
             // DownRight
-            addQueenAttacks = (queens >> 9) & ChessRules.NotAFile;
+            addQueenAttacks = (queens >> 9) & NotAFile;
             while(addQueenAttacks != 0)
             {
                 queenAttacks = queenAttacks | addQueenAttacks;
                 addQueenAttacks = addQueenAttacks & state.open;
-                addQueenAttacks = (addQueenAttacks >> 9) & ChessRules.NotAFile;
+                addQueenAttacks = (addQueenAttacks >> 9) & NotAFile;
             }
             // End DownRight
             // Up
@@ -636,21 +638,21 @@ public static class ChessStrategy
             }
             // End Down
             // Left
-            addQueenAttacks = (queens << 1) & ChessRules.NotHFile;
+            addQueenAttacks = (queens << 1) & NotHFile;
             while(addQueenAttacks != 0)
             {
                 queenAttacks = queenAttacks | addQueenAttacks;
                 addQueenAttacks = addQueenAttacks & state.open;
-                addQueenAttacks = (addQueenAttacks << 1) & ChessRules.NotHFile;
+                addQueenAttacks = (addQueenAttacks << 1) & NotHFile;
             }
             // End Left
             // Right
-            addQueenAttacks = (queens >> 1) & ChessRules.NotAFile;
+            addQueenAttacks = (queens >> 1) & NotAFile;
             while(addQueenAttacks != 0)
             {
                 queenAttacks = queenAttacks | addQueenAttacks;
                 addQueenAttacks = addQueenAttacks & state.open;
-                addQueenAttacks = (addQueenAttacks >> 1) & ChessRules.NotAFile;
+                addQueenAttacks = (addQueenAttacks >> 1) & NotAFile;
             }
             // End Right
 
@@ -677,39 +679,39 @@ public static class ChessStrategy
             UInt64 addQueenAttacks;
             UInt64 queens = state.blackQueens;
             // UpLeft
-            addQueenAttacks = (queens << 9) & ChessRules.NotHFile;
+            addQueenAttacks = (queens << 9) & NotHFile;
             while(addQueenAttacks != 0)
             {
                 queenAttacks = queenAttacks | addQueenAttacks;
                 addQueenAttacks = addQueenAttacks & state.open;
-                addQueenAttacks = (addQueenAttacks << 9) & ChessRules.NotHFile;
+                addQueenAttacks = (addQueenAttacks << 9) & NotHFile;
             }
             // End UpLeft
             // UpRight
-            addQueenAttacks = (queens << 7) & ChessRules.NotAFile;
+            addQueenAttacks = (queens << 7) & NotAFile;
             while(addQueenAttacks != 0)
             {
                 queenAttacks = queenAttacks | addQueenAttacks;
                 addQueenAttacks = addQueenAttacks & state.open;
-                addQueenAttacks = (addQueenAttacks << 7) & ChessRules.NotAFile;
+                addQueenAttacks = (addQueenAttacks << 7) & NotAFile;
             }
             // End UpRight
             // DownLeft
-            addQueenAttacks = (queens >> 7) & ChessRules.NotHFile;
+            addQueenAttacks = (queens >> 7) & NotHFile;
             while(addQueenAttacks != 0)
             {
                 queenAttacks = queenAttacks | addQueenAttacks;
                 addQueenAttacks = addQueenAttacks & state.open;
-                addQueenAttacks = (addQueenAttacks >> 7) & ChessRules.NotHFile;
+                addQueenAttacks = (addQueenAttacks >> 7) & NotHFile;
             }
             // End DownLeft
             // DownRight
-            addQueenAttacks = (queens >> 9) & ChessRules.NotAFile;
+            addQueenAttacks = (queens >> 9) & NotAFile;
             while(addQueenAttacks != 0)
             {
                 queenAttacks = queenAttacks | addQueenAttacks;
                 addQueenAttacks = addQueenAttacks & state.open;
-                addQueenAttacks = (addQueenAttacks >> 9) & ChessRules.NotAFile;
+                addQueenAttacks = (addQueenAttacks >> 9) & NotAFile;
             }
             // End DownRight
             // Up
@@ -731,21 +733,21 @@ public static class ChessStrategy
             }
             // End Down
             // Left
-            addQueenAttacks = (queens << 1) & ChessRules.NotHFile;
+            addQueenAttacks = (queens << 1) & NotHFile;
             while(addQueenAttacks != 0)
             {
                 queenAttacks = queenAttacks | addQueenAttacks;
                 addQueenAttacks = addQueenAttacks & state.open;
-                addQueenAttacks = (addQueenAttacks << 1) & ChessRules.NotHFile;
+                addQueenAttacks = (addQueenAttacks << 1) & NotHFile;
             }
             // End Left
             // Right
-            addQueenAttacks = (queens >> 1) & ChessRules.NotAFile;
+            addQueenAttacks = (queens >> 1) & NotAFile;
             while(addQueenAttacks != 0)
             {
                 queenAttacks = queenAttacks | addQueenAttacks;
                 addQueenAttacks = addQueenAttacks & state.open;
-                addQueenAttacks = (addQueenAttacks >> 1) & ChessRules.NotAFile;
+                addQueenAttacks = (addQueenAttacks >> 1) & NotAFile;
             }
             // End Right
 
@@ -768,7 +770,7 @@ public static class ChessStrategy
             blackPosition = blackPosition + QueenDefenseValue * CountBits(queenAttacks & state.blackKing   ) * KingPositionValue;
         } // End Black Queens
         { // White King
-            UInt64 kingAttacks = ChessRules.getKingAttacks(state.whiteKing);
+            UInt64 kingAttacks = getKingAttacks(state.whiteKing);
             
             threatenedBlackPositions = threatenedBlackPositions | (kingAttacks & state.blackPieces);
             defendedWhitePositions = defendedWhitePositions | (kingAttacks & state.whitePieces);
@@ -789,7 +791,7 @@ public static class ChessStrategy
             whitePosition = whitePosition + KingDefenseValue * CountBits(kingAttacks & state.whiteKing   ) * KingPositionValue;
         } // End White King
         { // Black King
-            UInt64 kingAttacks = ChessRules.getKingAttacks(state.blackKing);
+            UInt64 kingAttacks = getKingAttacks(state.blackKing);
             
             threatenedWhitePositions = threatenedWhitePositions | (kingAttacks & state.whitePieces);
             defendedBlackPositions = defendedBlackPositions | (kingAttacks & state.blackPieces);
