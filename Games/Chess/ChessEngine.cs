@@ -104,7 +104,7 @@ public class ChessEngine
             pieces = whitePieceBBs[i];
             while(pieces != 0)
             {
-                piece = ChessRules.MSB(pieces);
+                piece = BitOps.MSB(pieces);
                 pieces = pieces - piece;
                 dispPieceTile[this.tileToFR(piece)] = c;
             }
@@ -112,7 +112,7 @@ public class ChessEngine
             pieces = blackPieceBBs[i];
             while(pieces != 0)
             {
-                piece = ChessRules.MSB(pieces);
+                piece = BitOps.MSB(pieces);
                 pieces = pieces - piece;
                 dispPieceTile[this.tileToFR(piece)] = c;
             }

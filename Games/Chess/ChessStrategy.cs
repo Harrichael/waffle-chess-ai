@@ -190,51 +190,40 @@ public static class ChessStrategy
         return RandomSelect(bestActions);
     }
 
-    public static UInt64 CountBits(UInt64 val)
-    {
-        UInt64 count = 0;
-        while (val != 0)
-        {
-            count = count + 1;
-            val = val & (val - 1);
-        }
-        return count;
-    }
-
     public static Int64 Heuristic(XBoard state, bool playerIsWhite)
     {
         // Potential
         UInt64 whiteMaterial = 0;
         UInt64 blackMaterial = 0;
         { // White Material
-            whiteMaterial = whiteMaterial + PawnAdv0Material * CountBits(state.whitePawns & Rank2);
-            whiteMaterial = whiteMaterial + PawnAdv1Material * CountBits(state.whitePawns & Rank3);
-            whiteMaterial = whiteMaterial + PawnAdv2Material * CountBits(state.whitePawns & Rank4);
-            whiteMaterial = whiteMaterial + PawnAdv3Material * CountBits(state.whitePawns & Rank5);
-            whiteMaterial = whiteMaterial + PawnAdv4Material * CountBits(state.whitePawns & Rank6);
-            whiteMaterial = whiteMaterial + PawnAdv5Material * CountBits(state.whitePawns & Rank7);
-            whiteMaterial = whiteMaterial - PawnOutmostFilePenalty * CountBits(state.whitePawns & (AFile | HFile));
-            whiteMaterial = whiteMaterial - PawnOuterFilePenalty * CountBits(state.whitePawns & (BFile | GFile));
+            whiteMaterial = whiteMaterial + PawnAdv0Material * BitOps.CountBits(state.whitePawns & Rank2);
+            whiteMaterial = whiteMaterial + PawnAdv1Material * BitOps.CountBits(state.whitePawns & Rank3);
+            whiteMaterial = whiteMaterial + PawnAdv2Material * BitOps.CountBits(state.whitePawns & Rank4);
+            whiteMaterial = whiteMaterial + PawnAdv3Material * BitOps.CountBits(state.whitePawns & Rank5);
+            whiteMaterial = whiteMaterial + PawnAdv4Material * BitOps.CountBits(state.whitePawns & Rank6);
+            whiteMaterial = whiteMaterial + PawnAdv5Material * BitOps.CountBits(state.whitePawns & Rank7);
+            whiteMaterial = whiteMaterial - PawnOutmostFilePenalty * BitOps.CountBits(state.whitePawns & (AFile | HFile));
+            whiteMaterial = whiteMaterial - PawnOuterFilePenalty * BitOps.CountBits(state.whitePawns & (BFile | GFile));
 
-            whiteMaterial = whiteMaterial + RookMaterial * CountBits(state.whiteRooks);
-            whiteMaterial = whiteMaterial + KnightMaterial * CountBits(state.whiteKnights);
-            whiteMaterial = whiteMaterial + BishopMaterial * CountBits(state.whiteBishops);
-            whiteMaterial = whiteMaterial + QueenMaterial * CountBits(state.whiteQueens);
+            whiteMaterial = whiteMaterial + RookMaterial * BitOps.CountBits(state.whiteRooks);
+            whiteMaterial = whiteMaterial + KnightMaterial * BitOps.CountBits(state.whiteKnights);
+            whiteMaterial = whiteMaterial + BishopMaterial * BitOps.CountBits(state.whiteBishops);
+            whiteMaterial = whiteMaterial + QueenMaterial * BitOps.CountBits(state.whiteQueens);
         } // End White Material
         { // Black Material
-            blackMaterial = blackMaterial + PawnAdv0Material * CountBits(state.blackPawns & Rank7);
-            blackMaterial = blackMaterial + PawnAdv1Material * CountBits(state.blackPawns & Rank6);
-            blackMaterial = blackMaterial + PawnAdv2Material * CountBits(state.blackPawns & Rank5);
-            blackMaterial = blackMaterial + PawnAdv3Material * CountBits(state.blackPawns & Rank4);
-            blackMaterial = blackMaterial + PawnAdv4Material * CountBits(state.blackPawns & Rank3);
-            blackMaterial = blackMaterial + PawnAdv5Material * CountBits(state.blackPawns & Rank2);
-            blackMaterial = blackMaterial - PawnOutmostFilePenalty * CountBits(state.blackPawns & (AFile | HFile));
-            blackMaterial = blackMaterial - PawnOuterFilePenalty * CountBits(state.blackPawns & (BFile | GFile));
+            blackMaterial = blackMaterial + PawnAdv0Material * BitOps.CountBits(state.blackPawns & Rank7);
+            blackMaterial = blackMaterial + PawnAdv1Material * BitOps.CountBits(state.blackPawns & Rank6);
+            blackMaterial = blackMaterial + PawnAdv2Material * BitOps.CountBits(state.blackPawns & Rank5);
+            blackMaterial = blackMaterial + PawnAdv3Material * BitOps.CountBits(state.blackPawns & Rank4);
+            blackMaterial = blackMaterial + PawnAdv4Material * BitOps.CountBits(state.blackPawns & Rank3);
+            blackMaterial = blackMaterial + PawnAdv5Material * BitOps.CountBits(state.blackPawns & Rank2);
+            blackMaterial = blackMaterial - PawnOutmostFilePenalty * BitOps.CountBits(state.blackPawns & (AFile | HFile));
+            blackMaterial = blackMaterial - PawnOuterFilePenalty * BitOps.CountBits(state.blackPawns & (BFile | GFile));
 
-            blackMaterial = blackMaterial + RookMaterial * CountBits(state.blackRooks);
-            blackMaterial = blackMaterial + KnightMaterial * CountBits(state.blackKnights);
-            blackMaterial = blackMaterial + BishopMaterial * CountBits(state.blackBishops);
-            blackMaterial = blackMaterial + QueenMaterial * CountBits(state.blackQueens);
+            blackMaterial = blackMaterial + RookMaterial * BitOps.CountBits(state.blackRooks);
+            blackMaterial = blackMaterial + KnightMaterial * BitOps.CountBits(state.blackKnights);
+            blackMaterial = blackMaterial + BishopMaterial * BitOps.CountBits(state.blackBishops);
+            blackMaterial = blackMaterial + QueenMaterial * BitOps.CountBits(state.blackQueens);
         } // End Black Material
 
         // Position
@@ -249,41 +238,41 @@ public static class ChessStrategy
             UInt64 pawnAttacks = ((state.whitePawns & NotHFile) << 7) | ((state.whitePawns & NotAFile) << 9);
             threatenedBlackPositions = threatenedBlackPositions | (pawnAttacks & state.blackPieces);
             defendedWhitePositions = defendedWhitePositions | (pawnAttacks & state.whitePieces);
-            whitePosition = whitePosition + PawnOpenValue * CountBits(pawnAttacks & state.open);
+            whitePosition = whitePosition + PawnOpenValue * BitOps.CountBits(pawnAttacks & state.open);
 
-            whitePosition = whitePosition + PawnAttackValue * CountBits(pawnAttacks & state.blackPawns  ) * PawnPositionValue;
-            whitePosition = whitePosition + PawnAttackValue * CountBits(pawnAttacks & state.blackRooks  ) * RookPositionValue;
-            whitePosition = whitePosition + PawnAttackValue * CountBits(pawnAttacks & state.blackKnights) * KnightPositionValue;
-            whitePosition = whitePosition + PawnAttackValue * CountBits(pawnAttacks & state.blackBishops) * BishopPositionValue;
-            whitePosition = whitePosition + PawnAttackValue * CountBits(pawnAttacks & state.blackQueens ) * QueenPositionValue;
-            whitePosition = whitePosition + PawnAttackValue * CountBits(pawnAttacks & state.blackKing   ) * KingPositionValue;
+            whitePosition = whitePosition + PawnAttackValue * BitOps.CountBits(pawnAttacks & state.blackPawns  ) * PawnPositionValue;
+            whitePosition = whitePosition + PawnAttackValue * BitOps.CountBits(pawnAttacks & state.blackRooks  ) * RookPositionValue;
+            whitePosition = whitePosition + PawnAttackValue * BitOps.CountBits(pawnAttacks & state.blackKnights) * KnightPositionValue;
+            whitePosition = whitePosition + PawnAttackValue * BitOps.CountBits(pawnAttacks & state.blackBishops) * BishopPositionValue;
+            whitePosition = whitePosition + PawnAttackValue * BitOps.CountBits(pawnAttacks & state.blackQueens ) * QueenPositionValue;
+            whitePosition = whitePosition + PawnAttackValue * BitOps.CountBits(pawnAttacks & state.blackKing   ) * KingPositionValue;
 
-            whitePosition = whitePosition + PawnDefenseValue * CountBits(pawnAttacks & state.whitePawns  ) * PawnPositionValue;
-            whitePosition = whitePosition + PawnDefenseValue * CountBits(pawnAttacks & state.whiteRooks  ) * RookPositionValue;
-            whitePosition = whitePosition + PawnDefenseValue * CountBits(pawnAttacks & state.whiteKnights) * KnightPositionValue;
-            whitePosition = whitePosition + PawnDefenseValue * CountBits(pawnAttacks & state.whiteBishops) * BishopPositionValue;
-            whitePosition = whitePosition + PawnDefenseValue * CountBits(pawnAttacks & state.whiteQueens ) * QueenPositionValue;
-            whitePosition = whitePosition + PawnDefenseValue * CountBits(pawnAttacks & state.whiteKing   ) * KingPositionValue;
+            whitePosition = whitePosition + PawnDefenseValue * BitOps.CountBits(pawnAttacks & state.whitePawns  ) * PawnPositionValue;
+            whitePosition = whitePosition + PawnDefenseValue * BitOps.CountBits(pawnAttacks & state.whiteRooks  ) * RookPositionValue;
+            whitePosition = whitePosition + PawnDefenseValue * BitOps.CountBits(pawnAttacks & state.whiteKnights) * KnightPositionValue;
+            whitePosition = whitePosition + PawnDefenseValue * BitOps.CountBits(pawnAttacks & state.whiteBishops) * BishopPositionValue;
+            whitePosition = whitePosition + PawnDefenseValue * BitOps.CountBits(pawnAttacks & state.whiteQueens ) * QueenPositionValue;
+            whitePosition = whitePosition + PawnDefenseValue * BitOps.CountBits(pawnAttacks & state.whiteKing   ) * KingPositionValue;
         }
         { // Black Pawns
             UInt64 pawnAttacks = ((state.blackPawns & NotAFile) >> 7) | ((state.blackPawns & NotHFile) >> 9);
             threatenedWhitePositions = threatenedWhitePositions | (pawnAttacks & state.whitePieces);
             defendedBlackPositions = defendedBlackPositions | (pawnAttacks & state.blackPieces);
-            blackPosition = blackPosition + PawnOpenValue * CountBits(pawnAttacks & state.open);
+            blackPosition = blackPosition + PawnOpenValue * BitOps.CountBits(pawnAttacks & state.open);
 
-            blackPosition = blackPosition + PawnAttackValue * CountBits(pawnAttacks & state.whitePawns  ) * PawnPositionValue;
-            blackPosition = blackPosition + PawnAttackValue * CountBits(pawnAttacks & state.whiteRooks  ) * RookPositionValue;
-            blackPosition = blackPosition + PawnAttackValue * CountBits(pawnAttacks & state.whiteKnights) * KnightPositionValue;
-            blackPosition = blackPosition + PawnAttackValue * CountBits(pawnAttacks & state.whiteBishops) * BishopPositionValue;
-            blackPosition = blackPosition + PawnAttackValue * CountBits(pawnAttacks & state.whiteQueens ) * QueenPositionValue;
-            blackPosition = blackPosition + PawnAttackValue * CountBits(pawnAttacks & state.whiteKing   ) * KingPositionValue;
+            blackPosition = blackPosition + PawnAttackValue * BitOps.CountBits(pawnAttacks & state.whitePawns  ) * PawnPositionValue;
+            blackPosition = blackPosition + PawnAttackValue * BitOps.CountBits(pawnAttacks & state.whiteRooks  ) * RookPositionValue;
+            blackPosition = blackPosition + PawnAttackValue * BitOps.CountBits(pawnAttacks & state.whiteKnights) * KnightPositionValue;
+            blackPosition = blackPosition + PawnAttackValue * BitOps.CountBits(pawnAttacks & state.whiteBishops) * BishopPositionValue;
+            blackPosition = blackPosition + PawnAttackValue * BitOps.CountBits(pawnAttacks & state.whiteQueens ) * QueenPositionValue;
+            blackPosition = blackPosition + PawnAttackValue * BitOps.CountBits(pawnAttacks & state.whiteKing   ) * KingPositionValue;
 
-            blackPosition = blackPosition + PawnDefenseValue * CountBits(pawnAttacks & state.blackPawns  ) * PawnPositionValue;
-            blackPosition = blackPosition + PawnDefenseValue * CountBits(pawnAttacks & state.blackRooks  ) * RookPositionValue;
-            blackPosition = blackPosition + PawnDefenseValue * CountBits(pawnAttacks & state.blackKnights) * KnightPositionValue;
-            blackPosition = blackPosition + PawnDefenseValue * CountBits(pawnAttacks & state.blackBishops) * BishopPositionValue;
-            blackPosition = blackPosition + PawnDefenseValue * CountBits(pawnAttacks & state.blackQueens ) * QueenPositionValue;
-            blackPosition = blackPosition + PawnDefenseValue * CountBits(pawnAttacks & state.blackKing   ) * KingPositionValue;
+            blackPosition = blackPosition + PawnDefenseValue * BitOps.CountBits(pawnAttacks & state.blackPawns  ) * PawnPositionValue;
+            blackPosition = blackPosition + PawnDefenseValue * BitOps.CountBits(pawnAttacks & state.blackRooks  ) * RookPositionValue;
+            blackPosition = blackPosition + PawnDefenseValue * BitOps.CountBits(pawnAttacks & state.blackKnights) * KnightPositionValue;
+            blackPosition = blackPosition + PawnDefenseValue * BitOps.CountBits(pawnAttacks & state.blackBishops) * BishopPositionValue;
+            blackPosition = blackPosition + PawnDefenseValue * BitOps.CountBits(pawnAttacks & state.blackQueens ) * QueenPositionValue;
+            blackPosition = blackPosition + PawnDefenseValue * BitOps.CountBits(pawnAttacks & state.blackKing   ) * KingPositionValue;
         }
         { // White Knights
             UInt64 knightAttacks = 0;
@@ -291,27 +280,27 @@ public static class ChessStrategy
             UInt64 knight;
             while(knights != 0)
             {
-                knight = MSB(knights);
+                knight = BitOps.MSB(knights);
                 knights = knights - knight;
                 knightAttacks = knightAttacks | getKnightAttacks(knight);
             }
             threatenedBlackPositions = threatenedBlackPositions | (knightAttacks & state.blackPieces);
             defendedWhitePositions = defendedWhitePositions | (knightAttacks & state.whitePieces);
-            whitePosition = whitePosition + KnightOpenValue * CountBits(knightAttacks & state.open);
+            whitePosition = whitePosition + KnightOpenValue * BitOps.CountBits(knightAttacks & state.open);
 
-            whitePosition = whitePosition + KnightAttackValue * CountBits(knightAttacks & state.blackPawns  ) * PawnPositionValue;
-            whitePosition = whitePosition + KnightAttackValue * CountBits(knightAttacks & state.blackRooks  ) * RookPositionValue;
-            whitePosition = whitePosition + KnightAttackValue * CountBits(knightAttacks & state.blackKnights) * KnightPositionValue;
-            whitePosition = whitePosition + KnightAttackValue * CountBits(knightAttacks & state.blackBishops) * BishopPositionValue;
-            whitePosition = whitePosition + KnightAttackValue * CountBits(knightAttacks & state.blackQueens ) * QueenPositionValue;
-            whitePosition = whitePosition + KnightAttackValue * CountBits(knightAttacks & state.blackKing   ) * KingPositionValue;
+            whitePosition = whitePosition + KnightAttackValue * BitOps.CountBits(knightAttacks & state.blackPawns  ) * PawnPositionValue;
+            whitePosition = whitePosition + KnightAttackValue * BitOps.CountBits(knightAttacks & state.blackRooks  ) * RookPositionValue;
+            whitePosition = whitePosition + KnightAttackValue * BitOps.CountBits(knightAttacks & state.blackKnights) * KnightPositionValue;
+            whitePosition = whitePosition + KnightAttackValue * BitOps.CountBits(knightAttacks & state.blackBishops) * BishopPositionValue;
+            whitePosition = whitePosition + KnightAttackValue * BitOps.CountBits(knightAttacks & state.blackQueens ) * QueenPositionValue;
+            whitePosition = whitePosition + KnightAttackValue * BitOps.CountBits(knightAttacks & state.blackKing   ) * KingPositionValue;
 
-            whitePosition = whitePosition + KnightDefenseValue * CountBits(knightAttacks & state.whitePawns  ) * PawnPositionValue;
-            whitePosition = whitePosition + KnightDefenseValue * CountBits(knightAttacks & state.whiteRooks  ) * RookPositionValue;
-            whitePosition = whitePosition + KnightDefenseValue * CountBits(knightAttacks & state.whiteKnights) * KnightPositionValue;
-            whitePosition = whitePosition + KnightDefenseValue * CountBits(knightAttacks & state.whiteBishops) * BishopPositionValue;
-            whitePosition = whitePosition + KnightDefenseValue * CountBits(knightAttacks & state.whiteQueens ) * QueenPositionValue;
-            whitePosition = whitePosition + KnightDefenseValue * CountBits(knightAttacks & state.whiteKing   ) * KingPositionValue;
+            whitePosition = whitePosition + KnightDefenseValue * BitOps.CountBits(knightAttacks & state.whitePawns  ) * PawnPositionValue;
+            whitePosition = whitePosition + KnightDefenseValue * BitOps.CountBits(knightAttacks & state.whiteRooks  ) * RookPositionValue;
+            whitePosition = whitePosition + KnightDefenseValue * BitOps.CountBits(knightAttacks & state.whiteKnights) * KnightPositionValue;
+            whitePosition = whitePosition + KnightDefenseValue * BitOps.CountBits(knightAttacks & state.whiteBishops) * BishopPositionValue;
+            whitePosition = whitePosition + KnightDefenseValue * BitOps.CountBits(knightAttacks & state.whiteQueens ) * QueenPositionValue;
+            whitePosition = whitePosition + KnightDefenseValue * BitOps.CountBits(knightAttacks & state.whiteKing   ) * KingPositionValue;
         }
         { // Black Knights
             UInt64 knightAttacks = 0;
@@ -319,27 +308,27 @@ public static class ChessStrategy
             UInt64 knight;
             while(knights != 0)
             {
-                knight = MSB(knights);
+                knight = BitOps.MSB(knights);
                 knights = knights - knight;
                 knightAttacks = knightAttacks | getKnightAttacks(knight);
             }
             threatenedWhitePositions = threatenedWhitePositions | (knightAttacks & state.whitePieces);
             defendedBlackPositions = defendedBlackPositions | (knightAttacks & state.blackPieces);
-            blackPosition = blackPosition + KnightOpenValue * CountBits(knightAttacks & state.open);
+            blackPosition = blackPosition + KnightOpenValue * BitOps.CountBits(knightAttacks & state.open);
 
-            blackPosition = blackPosition + KnightAttackValue * CountBits(knightAttacks & state.whitePawns  ) * PawnPositionValue;
-            blackPosition = blackPosition + KnightAttackValue * CountBits(knightAttacks & state.whiteRooks  ) * RookPositionValue;
-            blackPosition = blackPosition + KnightAttackValue * CountBits(knightAttacks & state.whiteKnights) * KnightPositionValue;
-            blackPosition = blackPosition + KnightAttackValue * CountBits(knightAttacks & state.whiteBishops) * BishopPositionValue;
-            blackPosition = blackPosition + KnightAttackValue * CountBits(knightAttacks & state.whiteQueens ) * QueenPositionValue;
-            blackPosition = blackPosition + KnightAttackValue * CountBits(knightAttacks & state.whiteKing   ) * KingPositionValue;
+            blackPosition = blackPosition + KnightAttackValue * BitOps.CountBits(knightAttacks & state.whitePawns  ) * PawnPositionValue;
+            blackPosition = blackPosition + KnightAttackValue * BitOps.CountBits(knightAttacks & state.whiteRooks  ) * RookPositionValue;
+            blackPosition = blackPosition + KnightAttackValue * BitOps.CountBits(knightAttacks & state.whiteKnights) * KnightPositionValue;
+            blackPosition = blackPosition + KnightAttackValue * BitOps.CountBits(knightAttacks & state.whiteBishops) * BishopPositionValue;
+            blackPosition = blackPosition + KnightAttackValue * BitOps.CountBits(knightAttacks & state.whiteQueens ) * QueenPositionValue;
+            blackPosition = blackPosition + KnightAttackValue * BitOps.CountBits(knightAttacks & state.whiteKing   ) * KingPositionValue;
 
-            blackPosition = blackPosition + KnightDefenseValue * CountBits(knightAttacks & state.blackPawns  ) * PawnPositionValue;
-            blackPosition = blackPosition + KnightDefenseValue * CountBits(knightAttacks & state.blackRooks  ) * RookPositionValue;
-            blackPosition = blackPosition + KnightDefenseValue * CountBits(knightAttacks & state.blackKnights) * KnightPositionValue;
-            blackPosition = blackPosition + KnightDefenseValue * CountBits(knightAttacks & state.blackBishops) * BishopPositionValue;
-            blackPosition = blackPosition + KnightDefenseValue * CountBits(knightAttacks & state.blackQueens ) * QueenPositionValue;
-            blackPosition = blackPosition + KnightDefenseValue * CountBits(knightAttacks & state.blackKing   ) * KingPositionValue;
+            blackPosition = blackPosition + KnightDefenseValue * BitOps.CountBits(knightAttacks & state.blackPawns  ) * PawnPositionValue;
+            blackPosition = blackPosition + KnightDefenseValue * BitOps.CountBits(knightAttacks & state.blackRooks  ) * RookPositionValue;
+            blackPosition = blackPosition + KnightDefenseValue * BitOps.CountBits(knightAttacks & state.blackKnights) * KnightPositionValue;
+            blackPosition = blackPosition + KnightDefenseValue * BitOps.CountBits(knightAttacks & state.blackBishops) * BishopPositionValue;
+            blackPosition = blackPosition + KnightDefenseValue * BitOps.CountBits(knightAttacks & state.blackQueens ) * QueenPositionValue;
+            blackPosition = blackPosition + KnightDefenseValue * BitOps.CountBits(knightAttacks & state.blackKing   ) * KingPositionValue;
         }
         { // White Bishops
             UInt64 bishopAttacks = 0;
@@ -384,21 +373,21 @@ public static class ChessStrategy
 
             threatenedBlackPositions = threatenedBlackPositions | (bishopAttacks & state.blackPieces);
             defendedWhitePositions = defendedWhitePositions | (bishopAttacks & state.whitePieces);
-            whitePosition = whitePosition + BishopOpenValue * CountBits(bishopAttacks & state.open);
+            whitePosition = whitePosition + BishopOpenValue * BitOps.CountBits(bishopAttacks & state.open);
 
-            whitePosition = whitePosition + BishopAttackValue * CountBits(bishopAttacks & state.blackPawns  ) * PawnPositionValue;
-            whitePosition = whitePosition + BishopAttackValue * CountBits(bishopAttacks & state.blackRooks  ) * RookPositionValue;
-            whitePosition = whitePosition + BishopAttackValue * CountBits(bishopAttacks & state.blackKnights) * KnightPositionValue;
-            whitePosition = whitePosition + BishopAttackValue * CountBits(bishopAttacks & state.blackBishops) * BishopPositionValue;
-            whitePosition = whitePosition + BishopAttackValue * CountBits(bishopAttacks & state.blackQueens ) * QueenPositionValue;
-            whitePosition = whitePosition + BishopAttackValue * CountBits(bishopAttacks & state.blackKing   ) * KingPositionValue;
+            whitePosition = whitePosition + BishopAttackValue * BitOps.CountBits(bishopAttacks & state.blackPawns  ) * PawnPositionValue;
+            whitePosition = whitePosition + BishopAttackValue * BitOps.CountBits(bishopAttacks & state.blackRooks  ) * RookPositionValue;
+            whitePosition = whitePosition + BishopAttackValue * BitOps.CountBits(bishopAttacks & state.blackKnights) * KnightPositionValue;
+            whitePosition = whitePosition + BishopAttackValue * BitOps.CountBits(bishopAttacks & state.blackBishops) * BishopPositionValue;
+            whitePosition = whitePosition + BishopAttackValue * BitOps.CountBits(bishopAttacks & state.blackQueens ) * QueenPositionValue;
+            whitePosition = whitePosition + BishopAttackValue * BitOps.CountBits(bishopAttacks & state.blackKing   ) * KingPositionValue;
 
-            whitePosition = whitePosition + BishopDefenseValue * CountBits(bishopAttacks & state.whitePawns  ) * PawnPositionValue;
-            whitePosition = whitePosition + BishopDefenseValue * CountBits(bishopAttacks & state.whiteRooks  ) * RookPositionValue;
-            whitePosition = whitePosition + BishopDefenseValue * CountBits(bishopAttacks & state.whiteKnights) * KnightPositionValue;
-            whitePosition = whitePosition + BishopDefenseValue * CountBits(bishopAttacks & state.whiteBishops) * BishopPositionValue;
-            whitePosition = whitePosition + BishopDefenseValue * CountBits(bishopAttacks & state.whiteQueens ) * QueenPositionValue;
-            whitePosition = whitePosition + BishopDefenseValue * CountBits(bishopAttacks & state.whiteKing   ) * KingPositionValue;
+            whitePosition = whitePosition + BishopDefenseValue * BitOps.CountBits(bishopAttacks & state.whitePawns  ) * PawnPositionValue;
+            whitePosition = whitePosition + BishopDefenseValue * BitOps.CountBits(bishopAttacks & state.whiteRooks  ) * RookPositionValue;
+            whitePosition = whitePosition + BishopDefenseValue * BitOps.CountBits(bishopAttacks & state.whiteKnights) * KnightPositionValue;
+            whitePosition = whitePosition + BishopDefenseValue * BitOps.CountBits(bishopAttacks & state.whiteBishops) * BishopPositionValue;
+            whitePosition = whitePosition + BishopDefenseValue * BitOps.CountBits(bishopAttacks & state.whiteQueens ) * QueenPositionValue;
+            whitePosition = whitePosition + BishopDefenseValue * BitOps.CountBits(bishopAttacks & state.whiteKing   ) * KingPositionValue;
         } // End White Bishops
         { // Black Bishops
             UInt64 bishopAttacks = 0;
@@ -443,21 +432,21 @@ public static class ChessStrategy
 
             threatenedWhitePositions = threatenedWhitePositions | (bishopAttacks & state.whitePieces);
             defendedBlackPositions = defendedBlackPositions | (bishopAttacks & state.blackPieces);
-            blackPosition = blackPosition + BishopOpenValue * CountBits(bishopAttacks & state.open);
+            blackPosition = blackPosition + BishopOpenValue * BitOps.CountBits(bishopAttacks & state.open);
 
-            blackPosition = blackPosition + BishopAttackValue * CountBits(bishopAttacks & state.whitePawns  ) * PawnPositionValue;
-            blackPosition = blackPosition + BishopAttackValue * CountBits(bishopAttacks & state.whiteRooks  ) * RookPositionValue;
-            blackPosition = blackPosition + BishopAttackValue * CountBits(bishopAttacks & state.whiteKnights) * KnightPositionValue;
-            blackPosition = blackPosition + BishopAttackValue * CountBits(bishopAttacks & state.whiteBishops) * BishopPositionValue;
-            blackPosition = blackPosition + BishopAttackValue * CountBits(bishopAttacks & state.whiteQueens ) * QueenPositionValue;
-            blackPosition = blackPosition + BishopAttackValue * CountBits(bishopAttacks & state.whiteKing   ) * KingPositionValue;
+            blackPosition = blackPosition + BishopAttackValue * BitOps.CountBits(bishopAttacks & state.whitePawns  ) * PawnPositionValue;
+            blackPosition = blackPosition + BishopAttackValue * BitOps.CountBits(bishopAttacks & state.whiteRooks  ) * RookPositionValue;
+            blackPosition = blackPosition + BishopAttackValue * BitOps.CountBits(bishopAttacks & state.whiteKnights) * KnightPositionValue;
+            blackPosition = blackPosition + BishopAttackValue * BitOps.CountBits(bishopAttacks & state.whiteBishops) * BishopPositionValue;
+            blackPosition = blackPosition + BishopAttackValue * BitOps.CountBits(bishopAttacks & state.whiteQueens ) * QueenPositionValue;
+            blackPosition = blackPosition + BishopAttackValue * BitOps.CountBits(bishopAttacks & state.whiteKing   ) * KingPositionValue;
 
-            blackPosition = blackPosition + BishopDefenseValue * CountBits(bishopAttacks & state.blackPawns  ) * PawnPositionValue;
-            blackPosition = blackPosition + BishopDefenseValue * CountBits(bishopAttacks & state.blackRooks  ) * RookPositionValue;
-            blackPosition = blackPosition + BishopDefenseValue * CountBits(bishopAttacks & state.blackKnights) * KnightPositionValue;
-            blackPosition = blackPosition + BishopDefenseValue * CountBits(bishopAttacks & state.blackBishops) * BishopPositionValue;
-            blackPosition = blackPosition + BishopDefenseValue * CountBits(bishopAttacks & state.blackQueens ) * QueenPositionValue;
-            blackPosition = blackPosition + BishopDefenseValue * CountBits(bishopAttacks & state.blackKing   ) * KingPositionValue;
+            blackPosition = blackPosition + BishopDefenseValue * BitOps.CountBits(bishopAttacks & state.blackPawns  ) * PawnPositionValue;
+            blackPosition = blackPosition + BishopDefenseValue * BitOps.CountBits(bishopAttacks & state.blackRooks  ) * RookPositionValue;
+            blackPosition = blackPosition + BishopDefenseValue * BitOps.CountBits(bishopAttacks & state.blackKnights) * KnightPositionValue;
+            blackPosition = blackPosition + BishopDefenseValue * BitOps.CountBits(bishopAttacks & state.blackBishops) * BishopPositionValue;
+            blackPosition = blackPosition + BishopDefenseValue * BitOps.CountBits(bishopAttacks & state.blackQueens ) * QueenPositionValue;
+            blackPosition = blackPosition + BishopDefenseValue * BitOps.CountBits(bishopAttacks & state.blackKing   ) * KingPositionValue;
         } // End Black Bishops
         { // White Rooks
             UInt64 validMove = state.open | state.blackPieces;
@@ -503,21 +492,21 @@ public static class ChessStrategy
 
             threatenedBlackPositions = threatenedBlackPositions | (rookAttacks & state.blackPieces);
             defendedWhitePositions = defendedWhitePositions | (rookAttacks & state.whitePieces);
-            whitePosition = whitePosition + RookOpenValue * CountBits(rookAttacks & state.open);
+            whitePosition = whitePosition + RookOpenValue * BitOps.CountBits(rookAttacks & state.open);
 
-            whitePosition = whitePosition + RookAttackValue * CountBits(rookAttacks & state.blackPawns  ) * PawnPositionValue;
-            whitePosition = whitePosition + RookAttackValue * CountBits(rookAttacks & state.blackRooks  ) * RookPositionValue;
-            whitePosition = whitePosition + RookAttackValue * CountBits(rookAttacks & state.blackKnights) * KnightPositionValue;
-            whitePosition = whitePosition + RookAttackValue * CountBits(rookAttacks & state.blackBishops) * BishopPositionValue;
-            whitePosition = whitePosition + RookAttackValue * CountBits(rookAttacks & state.blackQueens ) * QueenPositionValue;
-            whitePosition = whitePosition + RookAttackValue * CountBits(rookAttacks & state.blackKing   ) * KingPositionValue;
+            whitePosition = whitePosition + RookAttackValue * BitOps.CountBits(rookAttacks & state.blackPawns  ) * PawnPositionValue;
+            whitePosition = whitePosition + RookAttackValue * BitOps.CountBits(rookAttacks & state.blackRooks  ) * RookPositionValue;
+            whitePosition = whitePosition + RookAttackValue * BitOps.CountBits(rookAttacks & state.blackKnights) * KnightPositionValue;
+            whitePosition = whitePosition + RookAttackValue * BitOps.CountBits(rookAttacks & state.blackBishops) * BishopPositionValue;
+            whitePosition = whitePosition + RookAttackValue * BitOps.CountBits(rookAttacks & state.blackQueens ) * QueenPositionValue;
+            whitePosition = whitePosition + RookAttackValue * BitOps.CountBits(rookAttacks & state.blackKing   ) * KingPositionValue;
 
-            whitePosition = whitePosition + RookDefenseValue * CountBits(rookAttacks & state.whitePawns  ) * PawnPositionValue;
-            whitePosition = whitePosition + RookDefenseValue * CountBits(rookAttacks & state.whiteRooks  ) * RookPositionValue;
-            whitePosition = whitePosition + RookDefenseValue * CountBits(rookAttacks & state.whiteKnights) * KnightPositionValue;
-            whitePosition = whitePosition + RookDefenseValue * CountBits(rookAttacks & state.whiteBishops) * BishopPositionValue;
-            whitePosition = whitePosition + RookDefenseValue * CountBits(rookAttacks & state.whiteQueens ) * QueenPositionValue;
-            whitePosition = whitePosition + RookDefenseValue * CountBits(rookAttacks & state.whiteKing   ) * KingPositionValue;
+            whitePosition = whitePosition + RookDefenseValue * BitOps.CountBits(rookAttacks & state.whitePawns  ) * PawnPositionValue;
+            whitePosition = whitePosition + RookDefenseValue * BitOps.CountBits(rookAttacks & state.whiteRooks  ) * RookPositionValue;
+            whitePosition = whitePosition + RookDefenseValue * BitOps.CountBits(rookAttacks & state.whiteKnights) * KnightPositionValue;
+            whitePosition = whitePosition + RookDefenseValue * BitOps.CountBits(rookAttacks & state.whiteBishops) * BishopPositionValue;
+            whitePosition = whitePosition + RookDefenseValue * BitOps.CountBits(rookAttacks & state.whiteQueens ) * QueenPositionValue;
+            whitePosition = whitePosition + RookDefenseValue * BitOps.CountBits(rookAttacks & state.whiteKing   ) * KingPositionValue;
         } // End White Rooks
         { // Black Rooks
             UInt64 validMove = state.open | state.whitePieces;
@@ -563,21 +552,21 @@ public static class ChessStrategy
 
             threatenedWhitePositions = threatenedWhitePositions | (rookAttacks & state.whitePieces);
             defendedBlackPositions = defendedBlackPositions | (rookAttacks & state.blackPieces);
-            blackPosition = blackPosition + RookOpenValue * CountBits(rookAttacks & state.open);
+            blackPosition = blackPosition + RookOpenValue * BitOps.CountBits(rookAttacks & state.open);
 
-            blackPosition = blackPosition + RookAttackValue * CountBits(rookAttacks & state.whitePawns  ) * PawnPositionValue;
-            blackPosition = blackPosition + RookAttackValue * CountBits(rookAttacks & state.whiteRooks  ) * RookPositionValue;
-            blackPosition = blackPosition + RookAttackValue * CountBits(rookAttacks & state.whiteKnights) * KnightPositionValue;
-            blackPosition = blackPosition + RookAttackValue * CountBits(rookAttacks & state.whiteBishops) * BishopPositionValue;
-            blackPosition = blackPosition + RookAttackValue * CountBits(rookAttacks & state.whiteQueens ) * QueenPositionValue;
-            blackPosition = blackPosition + RookAttackValue * CountBits(rookAttacks & state.whiteKing   ) * KingPositionValue;
+            blackPosition = blackPosition + RookAttackValue * BitOps.CountBits(rookAttacks & state.whitePawns  ) * PawnPositionValue;
+            blackPosition = blackPosition + RookAttackValue * BitOps.CountBits(rookAttacks & state.whiteRooks  ) * RookPositionValue;
+            blackPosition = blackPosition + RookAttackValue * BitOps.CountBits(rookAttacks & state.whiteKnights) * KnightPositionValue;
+            blackPosition = blackPosition + RookAttackValue * BitOps.CountBits(rookAttacks & state.whiteBishops) * BishopPositionValue;
+            blackPosition = blackPosition + RookAttackValue * BitOps.CountBits(rookAttacks & state.whiteQueens ) * QueenPositionValue;
+            blackPosition = blackPosition + RookAttackValue * BitOps.CountBits(rookAttacks & state.whiteKing   ) * KingPositionValue;
 
-            blackPosition = blackPosition + RookDefenseValue * CountBits(rookAttacks & state.blackPawns  ) * PawnPositionValue;
-            blackPosition = blackPosition + RookDefenseValue * CountBits(rookAttacks & state.blackRooks  ) * RookPositionValue;
-            blackPosition = blackPosition + RookDefenseValue * CountBits(rookAttacks & state.blackKnights) * KnightPositionValue;
-            blackPosition = blackPosition + RookDefenseValue * CountBits(rookAttacks & state.blackBishops) * BishopPositionValue;
-            blackPosition = blackPosition + RookDefenseValue * CountBits(rookAttacks & state.blackQueens ) * QueenPositionValue;
-            blackPosition = blackPosition + RookDefenseValue * CountBits(rookAttacks & state.blackKing   ) * KingPositionValue;
+            blackPosition = blackPosition + RookDefenseValue * BitOps.CountBits(rookAttacks & state.blackPawns  ) * PawnPositionValue;
+            blackPosition = blackPosition + RookDefenseValue * BitOps.CountBits(rookAttacks & state.blackRooks  ) * RookPositionValue;
+            blackPosition = blackPosition + RookDefenseValue * BitOps.CountBits(rookAttacks & state.blackKnights) * KnightPositionValue;
+            blackPosition = blackPosition + RookDefenseValue * BitOps.CountBits(rookAttacks & state.blackBishops) * BishopPositionValue;
+            blackPosition = blackPosition + RookDefenseValue * BitOps.CountBits(rookAttacks & state.blackQueens ) * QueenPositionValue;
+            blackPosition = blackPosition + RookDefenseValue * BitOps.CountBits(rookAttacks & state.blackKing   ) * KingPositionValue;
         } // End Black Rooks
         { // White Queens
             UInt64 queenAttacks = 0;
@@ -658,21 +647,21 @@ public static class ChessStrategy
 
             threatenedBlackPositions = threatenedBlackPositions | (queenAttacks & state.blackPieces);
             defendedWhitePositions = defendedWhitePositions | (queenAttacks & state.whitePieces);
-            whitePosition = whitePosition + QueenOpenValue * CountBits(queenAttacks & state.open);
+            whitePosition = whitePosition + QueenOpenValue * BitOps.CountBits(queenAttacks & state.open);
 
-            whitePosition = whitePosition + QueenAttackValue * CountBits(queenAttacks & state.blackPawns  ) * PawnPositionValue;
-            whitePosition = whitePosition + QueenAttackValue * CountBits(queenAttacks & state.blackRooks  ) * RookPositionValue;
-            whitePosition = whitePosition + QueenAttackValue * CountBits(queenAttacks & state.blackKnights) * KnightPositionValue;
-            whitePosition = whitePosition + QueenAttackValue * CountBits(queenAttacks & state.blackBishops) * BishopPositionValue;
-            whitePosition = whitePosition + QueenAttackValue * CountBits(queenAttacks & state.blackQueens ) * QueenPositionValue;
-            whitePosition = whitePosition + QueenAttackValue * CountBits(queenAttacks & state.blackKing   ) * KingPositionValue;
+            whitePosition = whitePosition + QueenAttackValue * BitOps.CountBits(queenAttacks & state.blackPawns  ) * PawnPositionValue;
+            whitePosition = whitePosition + QueenAttackValue * BitOps.CountBits(queenAttacks & state.blackRooks  ) * RookPositionValue;
+            whitePosition = whitePosition + QueenAttackValue * BitOps.CountBits(queenAttacks & state.blackKnights) * KnightPositionValue;
+            whitePosition = whitePosition + QueenAttackValue * BitOps.CountBits(queenAttacks & state.blackBishops) * BishopPositionValue;
+            whitePosition = whitePosition + QueenAttackValue * BitOps.CountBits(queenAttacks & state.blackQueens ) * QueenPositionValue;
+            whitePosition = whitePosition + QueenAttackValue * BitOps.CountBits(queenAttacks & state.blackKing   ) * KingPositionValue;
 
-            whitePosition = whitePosition + QueenDefenseValue * CountBits(queenAttacks & state.whitePawns  ) * PawnPositionValue;
-            whitePosition = whitePosition + QueenDefenseValue * CountBits(queenAttacks & state.whiteRooks  ) * RookPositionValue;
-            whitePosition = whitePosition + QueenDefenseValue * CountBits(queenAttacks & state.whiteKnights) * KnightPositionValue;
-            whitePosition = whitePosition + QueenDefenseValue * CountBits(queenAttacks & state.whiteBishops) * BishopPositionValue;
-            whitePosition = whitePosition + QueenDefenseValue * CountBits(queenAttacks & state.whiteQueens ) * QueenPositionValue;
-            whitePosition = whitePosition + QueenDefenseValue * CountBits(queenAttacks & state.whiteKing   ) * KingPositionValue;
+            whitePosition = whitePosition + QueenDefenseValue * BitOps.CountBits(queenAttacks & state.whitePawns  ) * PawnPositionValue;
+            whitePosition = whitePosition + QueenDefenseValue * BitOps.CountBits(queenAttacks & state.whiteRooks  ) * RookPositionValue;
+            whitePosition = whitePosition + QueenDefenseValue * BitOps.CountBits(queenAttacks & state.whiteKnights) * KnightPositionValue;
+            whitePosition = whitePosition + QueenDefenseValue * BitOps.CountBits(queenAttacks & state.whiteBishops) * BishopPositionValue;
+            whitePosition = whitePosition + QueenDefenseValue * BitOps.CountBits(queenAttacks & state.whiteQueens ) * QueenPositionValue;
+            whitePosition = whitePosition + QueenDefenseValue * BitOps.CountBits(queenAttacks & state.whiteKing   ) * KingPositionValue;
         } // End White Queens
         { // Black Queens
             UInt64 queenAttacks = 0;
@@ -753,69 +742,69 @@ public static class ChessStrategy
 
             threatenedWhitePositions = threatenedWhitePositions | (queenAttacks & state.whitePieces);
             defendedBlackPositions = defendedBlackPositions | (queenAttacks & state.blackPieces);
-            blackPosition = blackPosition + QueenOpenValue * CountBits(queenAttacks & state.open);
+            blackPosition = blackPosition + QueenOpenValue * BitOps.CountBits(queenAttacks & state.open);
 
-            blackPosition = blackPosition + QueenAttackValue * CountBits(queenAttacks & state.whitePawns  ) * PawnPositionValue;
-            blackPosition = blackPosition + QueenAttackValue * CountBits(queenAttacks & state.whiteRooks  ) * RookPositionValue;
-            blackPosition = blackPosition + QueenAttackValue * CountBits(queenAttacks & state.whiteKnights) * KnightPositionValue;
-            blackPosition = blackPosition + QueenAttackValue * CountBits(queenAttacks & state.whiteBishops) * BishopPositionValue;
-            blackPosition = blackPosition + QueenAttackValue * CountBits(queenAttacks & state.whiteQueens ) * QueenPositionValue;
-            blackPosition = blackPosition + QueenAttackValue * CountBits(queenAttacks & state.whiteKing   ) * KingPositionValue;
+            blackPosition = blackPosition + QueenAttackValue * BitOps.CountBits(queenAttacks & state.whitePawns  ) * PawnPositionValue;
+            blackPosition = blackPosition + QueenAttackValue * BitOps.CountBits(queenAttacks & state.whiteRooks  ) * RookPositionValue;
+            blackPosition = blackPosition + QueenAttackValue * BitOps.CountBits(queenAttacks & state.whiteKnights) * KnightPositionValue;
+            blackPosition = blackPosition + QueenAttackValue * BitOps.CountBits(queenAttacks & state.whiteBishops) * BishopPositionValue;
+            blackPosition = blackPosition + QueenAttackValue * BitOps.CountBits(queenAttacks & state.whiteQueens ) * QueenPositionValue;
+            blackPosition = blackPosition + QueenAttackValue * BitOps.CountBits(queenAttacks & state.whiteKing   ) * KingPositionValue;
 
-            blackPosition = blackPosition + QueenDefenseValue * CountBits(queenAttacks & state.blackPawns  ) * PawnPositionValue;
-            blackPosition = blackPosition + QueenDefenseValue * CountBits(queenAttacks & state.blackRooks  ) * RookPositionValue;
-            blackPosition = blackPosition + QueenDefenseValue * CountBits(queenAttacks & state.blackKnights) * KnightPositionValue;
-            blackPosition = blackPosition + QueenDefenseValue * CountBits(queenAttacks & state.blackBishops) * BishopPositionValue;
-            blackPosition = blackPosition + QueenDefenseValue * CountBits(queenAttacks & state.blackQueens ) * QueenPositionValue;
-            blackPosition = blackPosition + QueenDefenseValue * CountBits(queenAttacks & state.blackKing   ) * KingPositionValue;
+            blackPosition = blackPosition + QueenDefenseValue * BitOps.CountBits(queenAttacks & state.blackPawns  ) * PawnPositionValue;
+            blackPosition = blackPosition + QueenDefenseValue * BitOps.CountBits(queenAttacks & state.blackRooks  ) * RookPositionValue;
+            blackPosition = blackPosition + QueenDefenseValue * BitOps.CountBits(queenAttacks & state.blackKnights) * KnightPositionValue;
+            blackPosition = blackPosition + QueenDefenseValue * BitOps.CountBits(queenAttacks & state.blackBishops) * BishopPositionValue;
+            blackPosition = blackPosition + QueenDefenseValue * BitOps.CountBits(queenAttacks & state.blackQueens ) * QueenPositionValue;
+            blackPosition = blackPosition + QueenDefenseValue * BitOps.CountBits(queenAttacks & state.blackKing   ) * KingPositionValue;
         } // End Black Queens
         { // White King
             UInt64 kingAttacks = getKingAttacks(state.whiteKing);
             
             threatenedBlackPositions = threatenedBlackPositions | (kingAttacks & state.blackPieces);
             defendedWhitePositions = defendedWhitePositions | (kingAttacks & state.whitePieces);
-            whitePosition = whitePosition + KingOpenValue * CountBits(kingAttacks & state.open);
+            whitePosition = whitePosition + KingOpenValue * BitOps.CountBits(kingAttacks & state.open);
 
-            whitePosition = whitePosition + KingAttackValue * CountBits(kingAttacks & state.blackPawns  ) * PawnPositionValue;
-            whitePosition = whitePosition + KingAttackValue * CountBits(kingAttacks & state.blackRooks  ) * RookPositionValue;
-            whitePosition = whitePosition + KingAttackValue * CountBits(kingAttacks & state.blackKnights) * KnightPositionValue;
-            whitePosition = whitePosition + KingAttackValue * CountBits(kingAttacks & state.blackBishops) * BishopPositionValue;
-            whitePosition = whitePosition + KingAttackValue * CountBits(kingAttacks & state.blackQueens ) * QueenPositionValue;
-            whitePosition = whitePosition + KingAttackValue * CountBits(kingAttacks & state.blackKing   ) * KingPositionValue;
+            whitePosition = whitePosition + KingAttackValue * BitOps.CountBits(kingAttacks & state.blackPawns  ) * PawnPositionValue;
+            whitePosition = whitePosition + KingAttackValue * BitOps.CountBits(kingAttacks & state.blackRooks  ) * RookPositionValue;
+            whitePosition = whitePosition + KingAttackValue * BitOps.CountBits(kingAttacks & state.blackKnights) * KnightPositionValue;
+            whitePosition = whitePosition + KingAttackValue * BitOps.CountBits(kingAttacks & state.blackBishops) * BishopPositionValue;
+            whitePosition = whitePosition + KingAttackValue * BitOps.CountBits(kingAttacks & state.blackQueens ) * QueenPositionValue;
+            whitePosition = whitePosition + KingAttackValue * BitOps.CountBits(kingAttacks & state.blackKing   ) * KingPositionValue;
 
-            whitePosition = whitePosition + KingDefenseValue * CountBits(kingAttacks & state.whitePawns  ) * PawnPositionValue;
-            whitePosition = whitePosition + KingDefenseValue * CountBits(kingAttacks & state.whiteRooks  ) * RookPositionValue;
-            whitePosition = whitePosition + KingDefenseValue * CountBits(kingAttacks & state.whiteKnights) * KnightPositionValue;
-            whitePosition = whitePosition + KingDefenseValue * CountBits(kingAttacks & state.whiteBishops) * BishopPositionValue;
-            whitePosition = whitePosition + KingDefenseValue * CountBits(kingAttacks & state.whiteQueens ) * QueenPositionValue;
-            whitePosition = whitePosition + KingDefenseValue * CountBits(kingAttacks & state.whiteKing   ) * KingPositionValue;
+            whitePosition = whitePosition + KingDefenseValue * BitOps.CountBits(kingAttacks & state.whitePawns  ) * PawnPositionValue;
+            whitePosition = whitePosition + KingDefenseValue * BitOps.CountBits(kingAttacks & state.whiteRooks  ) * RookPositionValue;
+            whitePosition = whitePosition + KingDefenseValue * BitOps.CountBits(kingAttacks & state.whiteKnights) * KnightPositionValue;
+            whitePosition = whitePosition + KingDefenseValue * BitOps.CountBits(kingAttacks & state.whiteBishops) * BishopPositionValue;
+            whitePosition = whitePosition + KingDefenseValue * BitOps.CountBits(kingAttacks & state.whiteQueens ) * QueenPositionValue;
+            whitePosition = whitePosition + KingDefenseValue * BitOps.CountBits(kingAttacks & state.whiteKing   ) * KingPositionValue;
         } // End White King
         { // Black King
             UInt64 kingAttacks = getKingAttacks(state.blackKing);
             
             threatenedWhitePositions = threatenedWhitePositions | (kingAttacks & state.whitePieces);
             defendedBlackPositions = defendedBlackPositions | (kingAttacks & state.blackPieces);
-            blackPosition = blackPosition + KingOpenValue * CountBits(kingAttacks & state.open);
+            blackPosition = blackPosition + KingOpenValue * BitOps.CountBits(kingAttacks & state.open);
 
-            blackPosition = blackPosition + KingAttackValue * CountBits(kingAttacks & state.whitePawns  ) * PawnPositionValue;
-            blackPosition = blackPosition + KingAttackValue * CountBits(kingAttacks & state.whiteRooks  ) * RookPositionValue;
-            blackPosition = blackPosition + KingAttackValue * CountBits(kingAttacks & state.whiteKnights) * KnightPositionValue;
-            blackPosition = blackPosition + KingAttackValue * CountBits(kingAttacks & state.whiteBishops) * BishopPositionValue;
-            blackPosition = blackPosition + KingAttackValue * CountBits(kingAttacks & state.whiteQueens ) * QueenPositionValue;
-            blackPosition = blackPosition + KingAttackValue * CountBits(kingAttacks & state.whiteKing   ) * KingPositionValue;
+            blackPosition = blackPosition + KingAttackValue * BitOps.CountBits(kingAttacks & state.whitePawns  ) * PawnPositionValue;
+            blackPosition = blackPosition + KingAttackValue * BitOps.CountBits(kingAttacks & state.whiteRooks  ) * RookPositionValue;
+            blackPosition = blackPosition + KingAttackValue * BitOps.CountBits(kingAttacks & state.whiteKnights) * KnightPositionValue;
+            blackPosition = blackPosition + KingAttackValue * BitOps.CountBits(kingAttacks & state.whiteBishops) * BishopPositionValue;
+            blackPosition = blackPosition + KingAttackValue * BitOps.CountBits(kingAttacks & state.whiteQueens ) * QueenPositionValue;
+            blackPosition = blackPosition + KingAttackValue * BitOps.CountBits(kingAttacks & state.whiteKing   ) * KingPositionValue;
 
-            blackPosition = blackPosition + KingDefenseValue * CountBits(kingAttacks & state.blackPawns  ) * PawnPositionValue;
-            blackPosition = blackPosition + KingDefenseValue * CountBits(kingAttacks & state.blackRooks  ) * RookPositionValue;
-            blackPosition = blackPosition + KingDefenseValue * CountBits(kingAttacks & state.blackKnights) * KnightPositionValue;
-            blackPosition = blackPosition + KingDefenseValue * CountBits(kingAttacks & state.blackBishops) * BishopPositionValue;
-            blackPosition = blackPosition + KingDefenseValue * CountBits(kingAttacks & state.blackQueens ) * QueenPositionValue;
-            blackPosition = blackPosition + KingDefenseValue * CountBits(kingAttacks & state.blackKing   ) * KingPositionValue;
+            blackPosition = blackPosition + KingDefenseValue * BitOps.CountBits(kingAttacks & state.blackPawns  ) * PawnPositionValue;
+            blackPosition = blackPosition + KingDefenseValue * BitOps.CountBits(kingAttacks & state.blackRooks  ) * RookPositionValue;
+            blackPosition = blackPosition + KingDefenseValue * BitOps.CountBits(kingAttacks & state.blackKnights) * KnightPositionValue;
+            blackPosition = blackPosition + KingDefenseValue * BitOps.CountBits(kingAttacks & state.blackBishops) * BishopPositionValue;
+            blackPosition = blackPosition + KingDefenseValue * BitOps.CountBits(kingAttacks & state.blackQueens ) * QueenPositionValue;
+            blackPosition = blackPosition + KingDefenseValue * BitOps.CountBits(kingAttacks & state.blackKing   ) * KingPositionValue;
         } // End Black King
 
         threatenedWhitePositions = threatenedWhitePositions & ~defendedWhitePositions;
         threatenedBlackPositions = threatenedBlackPositions & ~defendedBlackPositions;
-        whitePosition += defendedBonus * CountBits(defendedWhitePositions) - threatenedPenalty * CountBits(threatenedWhitePositions);
-        blackPosition += defendedBonus * CountBits(defendedBlackPositions) - threatenedPenalty * CountBits(threatenedBlackPositions);
+        whitePosition += defendedBonus * BitOps.CountBits(defendedWhitePositions) - threatenedPenalty * BitOps.CountBits(threatenedWhitePositions);
+        blackPosition += defendedBonus * BitOps.CountBits(defendedBlackPositions) - threatenedPenalty * BitOps.CountBits(threatenedBlackPositions);
         
         if (playerIsWhite)
         {

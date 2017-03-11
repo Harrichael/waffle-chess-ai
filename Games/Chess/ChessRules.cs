@@ -62,52 +62,6 @@ public static class ChessRules
     public static readonly UInt64 blackQSRookDest  = 0x1000000000000000;
 
 
-    public static UInt64 MSB(UInt64 input)
-    {
-        if (input == 0) return 0;
-    
-        UInt64 msb = 1;
-    
-        if ((input >> 32) == 0) 
-        {
-            input = input << 32;
-        } else {
-            msb = msb << 32;
-        }
-        if ((input >> 48) == 0) 
-        {
-            input = input << 16;
-        } else {
-            msb = msb << 16;
-        }
-        if ((input >> 56) == 0) 
-        {
-            input = input << 8;
-        } else {
-            msb = msb << 8;
-        }
-        if ((input >> 60) == 0) 
-        {
-            input = input << 4;
-        } else {
-            msb = msb << 4;
-        }
-        if ((input >> 62) == 0) 
-        {
-            input = input << 2;
-        } else {
-            msb = msb << 2;
-        }
-        if ((input >> 63) == 0) 
-        {
-            input = input << 1;
-        } else {
-            msb = msb << 1;
-        }
-    
-        return msb;
-    }
-
     public static List<XAction> LegalMoves(XBoard state)
     {
         var neighbors = new List<XAction>();
@@ -136,7 +90,7 @@ public static class ChessRules
                 pieces = pieceBBs[i];
                 while(pieces != 0)
                 {
-                    piece = MSB(pieces);
+                    piece = BitOps.MSB(pieces);
                     pieces = pieces - piece;
                     opponentPT[piece] = pts[i];
                 }
@@ -201,8 +155,8 @@ public static class ChessRules
                 tempDest = tempDests[i];
                 while(tempSrc != 0)
                 {
-                    src = MSB(tempSrc);
-                    dest = MSB(tempDest);
+                    src = BitOps.MSB(tempSrc);
+                    dest = BitOps.MSB(tempDest);
                     tempSrc = tempSrc - src;
                     tempDest = tempDest - dest;
                     if ( (dest & (Rank1 | Rank8)) == 0)
@@ -249,12 +203,12 @@ public static class ChessRules
 
             while(knights != 0)
             {
-                knight = MSB(knights);
+                knight = BitOps.MSB(knights);
                 knights = knights - knight;
                 knightAttacks = getKnightAttacks(knight) & (state.open | opponentPieces);
                 while(knightAttacks != 0)
                 {
-                    knightAttack = MSB(knightAttacks);
+                    knightAttack = BitOps.MSB(knightAttacks);
                     knightAttacks = knightAttacks - knightAttack;
                     if ((knightAttack & opponentPieces) != 0)
                     {
@@ -283,7 +237,7 @@ public static class ChessRules
             kingAttacks = getKingAttacks(king) & (state.open | opponentPieces);
             while(kingAttacks != 0)
             {
-                kingAttack = MSB(kingAttacks);
+                kingAttack = BitOps.MSB(kingAttacks);
                 kingAttacks = kingAttacks - kingAttack;
                 if ((kingAttack & opponentPieces) != 0)
                 {
@@ -345,7 +299,7 @@ public static class ChessRules
 
             while(rooks != 0)
             {
-                rook = MSB(rooks);
+                rook = BitOps.MSB(rooks);
                 rooks = rooks - rook;
 
                 // up
@@ -383,7 +337,7 @@ public static class ChessRules
 
                 while(rookAttacks != 0)
                 {
-                    rookAttack = MSB(rookAttacks);
+                    rookAttack = BitOps.MSB(rookAttacks);
                     rookAttacks = rookAttacks - rookAttack;
                     if ((rookAttack & opponentPieces) != 0)
                     {
@@ -418,7 +372,7 @@ public static class ChessRules
 
             while(bishops != 0)
             {
-                bishop = MSB(bishops);
+                bishop = BitOps.MSB(bishops);
                 bishops = bishops - bishop;
 
                 // upleft
@@ -456,7 +410,7 @@ public static class ChessRules
 
                 while(bishopAttacks != 0)
                 {
-                    bishopAttack = MSB(bishopAttacks);
+                    bishopAttack = BitOps.MSB(bishopAttacks);
                     bishopAttacks = bishopAttacks - bishopAttack;
                     if ((bishopAttack & opponentPieces) != 0)
                     {
