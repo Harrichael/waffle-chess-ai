@@ -84,6 +84,14 @@ public static class ChessStrategy
 
     private static Int64 DL_Max(XBoard state, int depth, bool maxWhite)
     {
+        if (state.stateHistory.ContainsKey(state.zobristHash))
+        {
+            if (state.stateHistory[state.zobristHash] >= 2)
+            {
+                return 0;
+            }
+        }
+
         if (depth == 0)
         {
             return Heuristic(state, maxWhite);
@@ -123,6 +131,14 @@ public static class ChessStrategy
 
     private static Int64 DL_Min(XBoard state, int depth, bool maxWhite)
     {
+        if (state.stateHistory.ContainsKey(state.zobristHash))
+        {
+            if (state.stateHistory[state.zobristHash] >= 2)
+            {
+                return 0;
+            }
+        }
+
         if (depth == 0)
         {
             return Heuristic(state, maxWhite);
@@ -192,6 +208,11 @@ public static class ChessStrategy
 
     public static Int64 Heuristic(XBoard state, bool playerIsWhite)
     {
+        if (state.halfMoveClock >= 100)
+        {
+            return 0;
+        }
+
         // Potential
         UInt64 whiteMaterial = 0;
         UInt64 blackMaterial = 0;
@@ -449,7 +470,6 @@ public static class ChessStrategy
             blackPosition = blackPosition + BishopDefenseValue * BitOps.CountBits(bishopAttacks & state.blackKing   ) * KingPositionValue;
         } // End Black Bishops
         { // White Rooks
-            UInt64 validMove = state.open | state.blackPieces;
             UInt64 rookAttacks = 0;
             UInt64 addRookAttacks;
             UInt64 rooks = state.whiteRooks;
@@ -509,7 +529,6 @@ public static class ChessStrategy
             whitePosition = whitePosition + RookDefenseValue * BitOps.CountBits(rookAttacks & state.whiteKing   ) * KingPositionValue;
         } // End White Rooks
         { // Black Rooks
-            UInt64 validMove = state.open | state.whitePieces;
             UInt64 rookAttacks = 0;
             UInt64 addRookAttacks;
             UInt64 rooks = state.blackRooks;

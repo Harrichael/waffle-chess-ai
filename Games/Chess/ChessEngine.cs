@@ -87,6 +87,7 @@ public class ChessEngine
         this.board.updatePieces();
         this.board.whiteCheck = ChessRules.Threats(this.board, this.board.whiteKing) != 0;
         this.board.blackCheck = ChessRules.Threats(this.board, this.board.blackKing) != 0;
+        this.board.finishInit();
 
     } // End fen constructor method
 
@@ -171,8 +172,11 @@ public class ChessEngine
 
     public Tuple<string, string, string> MakeMove()
     {
-        var action = ChessStrategy.DL_Minimax(this.board, 2, this.aiIsWhite);
+        var action = ChessStrategy.DL_Minimax(this.board, 3, this.aiIsWhite);
+        var zobrist = this.board.zobristHash;
+        Console.WriteLine(zobrist);
         this.board.Apply(action);
+        Console.WriteLine(this.board.stateHistory[zobrist]);
         return Tuple.Create( this.tileToFR(action.srcTile),
                              this.tileToFR(action.destTile),
                              action.promotionType.ToString()
