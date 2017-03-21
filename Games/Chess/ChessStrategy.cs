@@ -100,6 +100,21 @@ public static class ChessStrategy
             return 0;
         }
 
+        var numPieces = BitOps.MSB(state.pieces);
+
+        if (numPieces == 2)
+        {
+            return 0;
+        }
+
+        if (numPieces == 3)
+        {
+            if ( (state.whiteKnights | state.whiteBishops | state.blackKnights | state.blackBishops) != 0)
+            {
+                return 0;
+            }
+        }
+
         if (depth == 0)
         {
             return Heuristic(state, maxWhite);
@@ -150,6 +165,21 @@ public static class ChessStrategy
         if (state.halfMoveClock >= 100)
         {
             return 0;
+        }
+
+        var numPieces = BitOps.MSB(state.pieces);
+
+        if (numPieces == 2)
+        {
+            return 0;
+        }
+
+        if (numPieces == 3)
+        {
+            if ( (state.whiteKnights | state.whiteBishops | state.blackKnights | state.blackBishops) != 0)
+            {
+                return 0;
+            }
         }
 
         if (depth == 0)
