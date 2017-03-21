@@ -10,7 +10,10 @@ public static class ChessStrategy
 {
 
     private static Random rand = new Random();
-    static byte QueenMaterial  = 125;
+    static byte materialWeight = 7;
+    static byte positionWeight = 2;
+
+    static byte QueenMaterial  = 150;
     static byte RookMaterial   = 70;
     static byte BishopMaterial = 60;
     static byte KnightMaterial = 55;
@@ -34,8 +37,8 @@ public static class ChessStrategy
     static byte KnightPositionValue = 3;
     static byte PawnPositionValue   = 2;
 
-    static byte KingOpenValue   = 1;
-    static byte QueenOpenValue  = 3;
+    static byte KingOpenValue   = 0;
+    static byte QueenOpenValue  = 1;
     static byte RookOpenValue   = 4;
     static byte BishopOpenValue = 10;
     static byte KnightOpenValue = 1;
@@ -92,6 +95,11 @@ public static class ChessStrategy
             }
         }
 
+        if (state.halfMoveClock >= 100)
+        {
+            return 0;
+        }
+
         if (depth == 0)
         {
             return Heuristic(state, maxWhite);
@@ -137,6 +145,11 @@ public static class ChessStrategy
             {
                 return 0;
             }
+        }
+
+        if (state.halfMoveClock >= 100)
+        {
+            return 0;
         }
 
         if (depth == 0)
@@ -208,11 +221,6 @@ public static class ChessStrategy
 
     public static Int64 Heuristic(XBoard state, bool playerIsWhite)
     {
-        if (state.halfMoveClock >= 100)
-        {
-            return 0;
-        }
-
         // Potential
         UInt64 whiteMaterial = 0;
         UInt64 blackMaterial = 0;
@@ -827,10 +835,10 @@ public static class ChessStrategy
         
         if (playerIsWhite)
         {
-            return (Int64)(whiteMaterial + whitePosition - blackMaterial - blackPosition);
+            return (Int64)(materialWeight*(whiteMaterial - blackMaterial) + positionWeight*(whitePosition - blackPosition));
         }
         {
-            return (Int64)(blackMaterial + blackPosition - whiteMaterial - whitePosition);
+            return (Int64)(materialWeight*(blackMaterial - whiteMaterial) + positionWeight*(blackPosition - whitePosition));
         }
     }
 }

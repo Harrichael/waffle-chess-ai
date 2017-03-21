@@ -158,7 +158,9 @@ public class XBoard
         this.actionUndoHistory.Push(new XActionUndoData(
             this.zobristHash,
             (byte)( (Convert.ToByte(this.whiteCastleKS)) & (Convert.ToByte(this.whiteCastleQS) << 1) & (Convert.ToByte(this.blackCastleKS) << 2) & (Convert.ToByte(this.blackCastleQS) << 3) ),
-            this.halfMoveClock
+            this.halfMoveClock,
+            this.whiteCheck,
+            this.blackCheck
         ));
         UInt64 lastState = this.zobristHash;
         this.enPassTile = 0;
@@ -475,6 +477,8 @@ public class XBoard
         }
         this.halfMoveClock = undoData.halfMoveClock;
         var castleSettings = undoData.castleSettings;
+        this.whiteCheck = undoData.whiteCheck;
+        this.blackCheck = undoData.blackCheck;
         this.turnIsWhite = !this.turnIsWhite;
         this.enPassTile = 0;
         this.whiteCastleKS = (castleSettings & 0x1) != 0;

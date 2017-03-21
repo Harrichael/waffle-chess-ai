@@ -47,11 +47,15 @@ public class XActionUndoData
     public UInt64 zobristHash;
     public byte castleSettings;
     public byte halfMoveClock;
-    public XActionUndoData(UInt64 zobristHash, byte castleSettings, byte halfMoveClock)
+    public bool whiteCheck;
+    public bool blackCheck;
+    public XActionUndoData(UInt64 zobristHash, byte castleSettings, byte halfMoveClock, bool whiteCheck, bool blackCheck)
     {
         this.zobristHash = zobristHash;
         this.castleSettings = castleSettings;
         this.halfMoveClock = halfMoveClock;
+        this.whiteCheck = whiteCheck;
+        this.blackCheck = blackCheck;
     }
 }
 
