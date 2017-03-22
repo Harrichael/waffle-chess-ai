@@ -447,8 +447,10 @@ public static class ChessRules
         UInt64 checkThreats;
         UInt64 attackers;
 
+        bool whiteAttackers = (tile & state.blackPieces) != 0;
+
         // Check Pawns
-        if (state.turnIsWhite)
+        if (whiteAttackers)
         {
             attackers = state.whitePawns;
             checkThreats = ((tile >> 9) & NotAFile) | ((tile >> 7) & NotHFile);
@@ -469,7 +471,7 @@ public static class ChessRules
         threats |= (attackers & checkThreats);
 
         // Check King
-        if (state.turnIsWhite)
+        if (whiteAttackers)
         {
             attackers = state.whiteKing;
         } else {
@@ -479,7 +481,7 @@ public static class ChessRules
         threats |= (attackers & checkThreats);
 
         // Check Rooks
-        if (state.turnIsWhite)
+        if (whiteAttackers)
         {
             attackers = state.whiteRooks | state.whiteQueens;
         } else {
@@ -532,7 +534,7 @@ public static class ChessRules
         }
 
         // Check Bishops
-        if (state.turnIsWhite)
+        if (whiteAttackers)
         {
             attackers = state.whiteBishops | state.whiteQueens;
         } else {

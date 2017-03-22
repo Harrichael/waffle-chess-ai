@@ -152,14 +152,14 @@ public static class ChessStrategy
         var bestChild = children[0];
         state.Apply(bestChild);
         var bestVal = DL_Min(state, depth-1, playerIsWhite);
+        Console.Write("(" + ChessEngine.tileToFR(bestChild.srcTile) + "-" + ChessEngine.tileToFR(bestChild.destTile) + " " + bestVal + " " + state.whiteCheck + " " + state.blackCheck + ")\t");
         state.Undo();
-        Console.Write(ChessEngine.tileToFR(bestChild.srcTile) + "-" + ChessEngine.tileToFR(bestChild.destTile) + " " + bestVal + "\t");
         foreach(var child in children.Skip(1))
         {
             state.Apply(child);
             var val = DL_Min(state, depth-1, playerIsWhite);
+        Console.Write("(" + ChessEngine.tileToFR(child.srcTile) + "-" + ChessEngine.tileToFR(child.destTile) + " " + val + " " + state.whiteCheck + " " + state.blackCheck + ")\t");
             state.Undo();
-            Console.Write(ChessEngine.tileToFR(child.srcTile) + "-" + ChessEngine.tileToFR(child.destTile) + " " + val + "\t");
             if (val > bestVal)
             {
                 bestChild = child;
