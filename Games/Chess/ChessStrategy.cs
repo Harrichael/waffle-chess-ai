@@ -182,13 +182,7 @@ public static class ChessStrategy
             }
         }
 
-        if (state.halfMoveClock >= 100)
-        {
-            return 0;
-        }
-
         var numPieces = BitOps.CountBits(state.pieces);
-
         if (numPieces == 2)
         {
             return 0;
@@ -211,6 +205,11 @@ public static class ChessStrategy
             } else { // Stalemate
                 return 0;
             }
+        }
+
+        if (state.halfMoveClock >= 100)
+        {
+            return 0;
         }
 
         if (depth == 0)
@@ -246,13 +245,7 @@ public static class ChessStrategy
             }
         }
 
-        if (state.halfMoveClock >= 100)
-        {
-            return 0;
-        }
-
         var numPieces = BitOps.CountBits(state.pieces);
-
         if (numPieces == 2)
         {
             return 0;
@@ -275,6 +268,11 @@ public static class ChessStrategy
             } else { // Stalemate
                 return 0;
             }
+        }
+
+        if (state.halfMoveClock >= 100)
+        {
+            return 0;
         }
 
         if (depth == 0)
