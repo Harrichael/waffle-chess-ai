@@ -172,11 +172,13 @@ public class ChessEngine
 
     public Tuple<string, string, string> MakeMove()
     {
-        var action = ChessStrategy.DL_Minimax(this.board, 3, this.aiIsWhite);
+        var action = ChessStrategy.IDL_Minimax(this.board, 3, this.aiIsWhite);
         var zobrist = this.board.zobristHash;
-        Console.WriteLine(zobrist);
         this.board.Apply(action);
+        Console.Write("Zobrist state counter: ");
         Console.WriteLine(this.board.stateHistory[zobrist]);
+        Console.Write("50 Move Counter: ");
+        Console.WriteLine(this.board.halfMoveClock);
         return Tuple.Create( this.tileToFR(action.srcTile),
                              this.tileToFR(action.destTile),
                              action.promotionType.ToString()

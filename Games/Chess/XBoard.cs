@@ -165,7 +165,7 @@ public class XBoard
         UInt64 lastState = this.zobristHash;
         this.enPassTile = 0;
         this.halfMoveClock += 1;
-        if (action.pieceType != PieceType.None)
+        if (action.attackType != PieceType.None)
         {
             this.halfMoveClock = 0;
         }

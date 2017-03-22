@@ -456,7 +456,7 @@ public static class ChessRules
             attackers = state.blackPawns;
             checkThreats = ((tile << 9) & NotHFile) | ((tile << 7) & NotAFile);
         }
-        threats = threats | (attackers & checkThreats);
+        threats |= (attackers & checkThreats);
 
         // Check Knights
         if (state.turnIsWhite)
@@ -466,7 +466,7 @@ public static class ChessRules
             attackers = state.blackKnights;
         }
         checkThreats = getKnightAttacks(tile);
-        threats = threats | (attackers & checkThreats);
+        threats |= (attackers & checkThreats);
 
         // Check King
         if (state.turnIsWhite)
@@ -476,7 +476,7 @@ public static class ChessRules
             attackers = state.blackKing;
         }
         checkThreats = getKingAttacks(tile);
-        threats = threats | (attackers & checkThreats);
+        threats |= (attackers & checkThreats);
 
         // Check Rooks
         if (state.turnIsWhite)
@@ -492,7 +492,7 @@ public static class ChessRules
         {
             if ((threat & attackers) != 0)
             {
-                threats = threats | threat;
+                threats |= threat;
                 break;
             }
             threat = threat << 8;
@@ -503,7 +503,7 @@ public static class ChessRules
         {
             if ((threat & attackers) != 0)
             {
-                threats = threats | threat;
+                threats |= threat;
                 break;
             }
             threat = threat >> 8;
@@ -514,7 +514,7 @@ public static class ChessRules
         {
             if ((threat & attackers) != 0)
             {
-                threats = threats | threat;
+                threats |= threat;
                 break;
             }
             threat = threat << 1;
@@ -525,7 +525,7 @@ public static class ChessRules
         {
             if ((threat & attackers) != 0)
             {
-                threats = threats | threat;
+                threats |= threat;
                 break;
             }
             threat = threat >> 1;
@@ -545,7 +545,7 @@ public static class ChessRules
         {
             if ((threat & attackers) != 0)
             {
-                threats = threats | threat;
+                threats |= threat;
                 break;
             }
             threat = threat << 9;
@@ -556,7 +556,7 @@ public static class ChessRules
         {
             if ((threat & attackers) != 0)
             {
-                threats = threats | threat;
+                threats |= threat;
                 break;
             }
             threat = threat << 7;
@@ -567,7 +567,7 @@ public static class ChessRules
         {
             if ((threat & attackers) != 0)
             {
-                threats = threats | threat;
+                threats |= threat;
                 break;
             }
             threat = threat >> 7;
@@ -578,7 +578,7 @@ public static class ChessRules
         {
             if ((threat & attackers) != 0)
             {
-                threats = threats | threat;
+                threats |= threat;
                 break;
             }
             threat = threat >> 9;

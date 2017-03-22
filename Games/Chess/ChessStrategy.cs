@@ -126,14 +126,32 @@ public static class ChessStrategy
         return sequence[rand.Next(sequence.Count())];
     }
 
-    public static XAction DL_Minimax(XBoard state, int depth, bool playerIsWhite)
+    public static XAction IDL_Minimax(XBoard state, int depth, bool playerIsWhite)
+    {
+        Tuple<XAction, Int64> action_eval = DL_Minimax(state, 1, playerIsWhite);
+        if (action_eval.Item2 == Int64.MaxValue)
+        {
+            return action_eval.Item1;
+        }
+        for (int d = 2; d <= depth; d++)
+        {
+            action_eval = DL_Minimax(state, d, playerIsWhite);
+            if (action_eval.Item2 == Int64.MaxValue)
+            {
+                return action_eval.Item1;
+            }
+        }
+        return action_eval.Item1;
+    }
+
+    public static Tuple<XAction, Int64> DL_Minimax(XBoard state, int depth, bool playerIsWhite)
     {
         var children = LegalMoves(state);
         var bestChild = children[0];
         state.Apply(bestChild);
         var bestVal = DL_Min(state, depth-1, playerIsWhite);
         state.Undo();
-        foreach(var child in children)
+        foreach(var child in children.Skip(1))
         {
             state.Apply(child);
             var val = DL_Min(state, depth-1, playerIsWhite);
@@ -145,7 +163,7 @@ public static class ChessStrategy
             }
         }
         Console.WriteLine("Final Evaluation: " + bestVal);
-        return bestChild;
+        return Tuple.Create(bestChild, bestVal);
     }
 
     private static Int64 DL_Max(XBoard state, int depth, bool maxWhite)
@@ -178,23 +196,20 @@ public static class ChessStrategy
             }
         }
 
-        if (depth == 0)
-        {
-            return Heuristic(state, maxWhite);
-        }
-
         var children = LegalMoves(state);
         if (children.Count() == 0) // Is terminal
         {
-            if (state.turnIsWhite && state.whiteCheck) // Check Mate
-            {
-                return Int64.MinValue;
-            } else if (state.blackCheck && !state.turnIsWhite)
+            if (state.whiteCheck || state.blackCheck) // Check Mate
             {
                 return Int64.MinValue;
             } else { // Stalemate
                 return 0;
             }
+        }
+
+        if (depth == 0)
+        {
+            return Heuristic(state, maxWhite);
         }
 
         state.Apply(children[0]);
@@ -245,23 +260,20 @@ public static class ChessStrategy
             }
         }
 
-        if (depth == 0)
-        {
-            return Heuristic(state, maxWhite);
-        }
-
         var children = LegalMoves(state);
         if (children.Count() == 0) // Is terminal
         {
-            if (state.whiteCheck && state.turnIsWhite) // Check Mate
-            {
-                return Int64.MaxValue;
-            } else if (state.blackCheck && !state.turnIsWhite)
+            if (state.whiteCheck || state.blackCheck) // Check Mate
             {
                 return Int64.MaxValue;
             } else { // Stalemate
                 return 0;
             }
+        }
+
+        if (depth == 0)
+        {
+            return Heuristic(state, maxWhite);
         }
 
         state.Apply(children[0]);
