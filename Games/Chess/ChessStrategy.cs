@@ -196,6 +196,15 @@ public static class ChessStrategy
             }
         }
 
+        if ( !(state.whiteCheck || state.blackCheck) && (depth == 0)) // Optimization, don't calculate children on noncheckmate
+        {
+            if (state.halfMoveClock >= 100)
+            {
+                return 0;
+            }
+            return Heuristic(state, maxWhite);
+        }
+
         var children = LegalMoves(state);
         if (children.Count() == 0) // Is terminal
         {
@@ -257,6 +266,15 @@ public static class ChessStrategy
             {
                 return 0;
             }
+        }
+
+        if ( !(state.whiteCheck || state.blackCheck) && (depth == 0)) // Optimization, don't calculate children on noncheckmate
+        {
+            if (state.halfMoveClock >= 100)
+            {
+                return 0;
+            }
+            return Heuristic(state, maxWhite);
         }
 
         var children = LegalMoves(state);
