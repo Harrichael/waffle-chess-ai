@@ -8,18 +8,20 @@ using static ChessRules;
 
 public static class ChessStrategy
 {
+    private static Int64 WinEval = Int64.MaxValue;
+    private static Int64 LoseEval = Int64.MinValue;
 
     private static Random rand = new Random();
-    static byte materialWeight = 9;
+    static byte materialWeight = 13;
     static byte positionWeight = 2;
 
-    static byte QueenMaterial  = 150;
+    static byte QueenMaterial  = 120;
     static byte RookMaterial   = 70;
     static byte BishopMaterial = 60;
     static byte KnightMaterial = 55;
 
-    static byte threatenedPenalty = 40;
-    static byte defendedBonus = 5;
+    static byte threatenedPenalty = 80;
+    static byte defendedBonus = 25;
 
     static byte PawnAdv0Material = 10;
     static byte PawnAdv1Material = 20;
@@ -34,7 +36,7 @@ public static class ChessStrategy
     static byte QueenOpenValue  = 6;
     static byte RookOpenValue   = 5;
     static byte BishopOpenValue = 12;
-    static byte KnightOpenValue = 2;
+    static byte KnightOpenValue = 6;
     static byte PawnOpenValue   = 5;
 
     /* Attack */
@@ -80,11 +82,11 @@ public static class ChessStrategy
     static byte KingAttackQueenValue  = 10;
 
     /* Defend */
-    static byte PawnDefendPawnValue   = 30;
+    static byte PawnDefendPawnValue   = 50;
     static byte PawnDefendRookValue   = 35;
-    static byte PawnDefendKnightValue = 45;
+    static byte PawnDefendKnightValue = 50;
     static byte PawnDefendBishopValue = 35;
-    static byte PawnDefendQueenValue  = 60;
+    static byte PawnDefendQueenValue  = 80;
     static byte PawnDefendKingValue   = 20;
 
     static byte RookDefendPawnValue   = 10;
@@ -129,14 +131,14 @@ public static class ChessStrategy
     public static XAction IDL_Minimax(XBoard state, int depth, bool playerIsWhite)
     {
         Tuple<XAction, Int64> action_eval = DL_Minimax(state, 1, playerIsWhite);
-        if (action_eval.Item2 == Int64.MaxValue)
+        if (action_eval.Item2 == WinEval)
         {
             return action_eval.Item1;
         }
         for (int d = 2; d <= depth; d++)
         {
             action_eval = DL_Minimax(state, d, playerIsWhite);
-            if (action_eval.Item2 == Int64.MaxValue)
+            if (action_eval.Item2 == WinEval)
             {
                 return action_eval.Item1;
             }
@@ -151,17 +153,21 @@ public static class ChessStrategy
         state.Apply(bestChild);
         var bestVal = DL_Min(state, depth-1, playerIsWhite);
         state.Undo();
+        Console.Write(ChessEngine.tileToFR(bestChild.srcTile) + "-" + ChessEngine.tileToFR(bestChild.destTile) + " " + bestVal + "\t");
         foreach(var child in children.Skip(1))
         {
             state.Apply(child);
             var val = DL_Min(state, depth-1, playerIsWhite);
             state.Undo();
+            Console.Write(ChessEngine.tileToFR(child.srcTile) + "-" + ChessEngine.tileToFR(child.destTile) + " " + val + "\t");
             if (val > bestVal)
             {
                 bestChild = child;
                 bestVal = val;
             }
         }
+        Console.WriteLine("");
+
         Console.WriteLine("Final Evaluation: " + bestVal);
         return Tuple.Create(bestChild, bestVal);
     }
@@ -201,7 +207,7 @@ public static class ChessStrategy
         {
             if (state.whiteCheck || state.blackCheck) // Check Mate
             {
-                return Int64.MinValue;
+                return LoseEval;
             } else { // Stalemate
                 return 0;
             }
@@ -265,7 +271,7 @@ public static class ChessStrategy
         {
             if (state.whiteCheck || state.blackCheck) // Check Mate
             {
-                return Int64.MaxValue;
+                return WinEval;
             } else { // Stalemate
                 return 0;
             }

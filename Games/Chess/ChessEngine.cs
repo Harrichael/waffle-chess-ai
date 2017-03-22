@@ -82,7 +82,7 @@ public class ChessEngine
         this.board.whiteCastleQS = fenFields[2].Contains("Q");
         this.board.blackCastleKS = fenFields[2].Contains("k");
         this.board.blackCastleQS = fenFields[2].Contains("q");
-        this.board.enPassTile = this.frToTile(fenFields[3]);
+        this.board.enPassTile = frToTile(fenFields[3]);
         this.board.halfMoveClock = byte.Parse(fenFields[4]);
         this.board.updatePieces();
         this.board.whiteCheck = ChessRules.Threats(this.board, this.board.whiteKing) != 0;
@@ -107,7 +107,7 @@ public class ChessEngine
             {
                 piece = BitOps.MSB(pieces);
                 pieces = pieces - piece;
-                dispPieceTile[this.tileToFR(piece)] = c;
+                dispPieceTile[tileToFR(piece)] = c;
             }
             c = (pts[i].ToString() == "Knight") ? 'n' : pts[i].ToString().ToLower()[0];
             pieces = blackPieceBBs[i];
@@ -115,7 +115,7 @@ public class ChessEngine
             {
                 piece = BitOps.MSB(pieces);
                 pieces = pieces - piece;
-                dispPieceTile[this.tileToFR(piece)] = c;
+                dispPieceTile[tileToFR(piece)] = c;
             }
         }
 
@@ -145,8 +145,8 @@ public class ChessEngine
     /// </summary>
     public void OpponentMove(string fromFR, string toFR, string promote)
     {
-        UInt64 srcTile = this.frToTile(fromFR);
-        UInt64 destTile = this.frToTile(toFR);
+        UInt64 srcTile = frToTile(fromFR);
+        UInt64 destTile = frToTile(toFR);
         PieceType movedPiece = this.pieceAtTile(srcTile);
         if (movedPiece == PieceType.King)
         {
@@ -172,6 +172,10 @@ public class ChessEngine
 
     public Tuple<string, string, string> MakeMove()
     {
+        Console.Write("Num Legal Moves: ");
+        var moves = ChessRules.LegalMoves(this.board);
+        Console.WriteLine(moves.Count());
+
         var action = ChessStrategy.IDL_Minimax(this.board, 3, this.aiIsWhite);
         var zobrist = this.board.zobristHash;
         this.board.Apply(action);
@@ -179,8 +183,8 @@ public class ChessEngine
         Console.WriteLine(this.board.stateHistory[zobrist]);
         Console.Write("50 Move Counter: ");
         Console.WriteLine(this.board.halfMoveClock);
-        return Tuple.Create( this.tileToFR(action.srcTile),
-                             this.tileToFR(action.destTile),
+        return Tuple.Create( tileToFR(action.srcTile),
+                             tileToFR(action.destTile),
                              action.promotionType.ToString()
         );
     } // End Make Move
@@ -188,7 +192,7 @@ public class ChessEngine
     /// <summary>
     /// Helper for reading fen
     /// </summary>
-    private UInt64 frToTile(string fr)
+    public static UInt64 frToTile(string fr)
     {
         switch (fr)
         {
@@ -265,7 +269,7 @@ public class ChessEngine
     /// <summary>
     /// Some precomputation for transforming a bitboard action into Joueur API
     /// </summary>
-    private string tileToFR(UInt64 tile)
+    public static string tileToFR(UInt64 tile)
     {
         switch(tile)
         {

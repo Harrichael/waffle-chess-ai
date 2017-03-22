@@ -91,6 +91,7 @@ namespace Joueur.cs.Games.Chess
         /// going and re-call this function.</returns>
         public bool RunTurn()
         {
+            Console.WriteLine("----------------------------------------------------");
             Console.WriteLine("Time Remaining: " + this.Player.TimeRemaining + " ns");
             if (this.Game.Moves.Count > 0)
             {
