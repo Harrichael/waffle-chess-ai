@@ -8,120 +8,149 @@ using static ChessRules;
 
 public static class ChessStrategy
 {
+/*
+TODO
+
+Symmetrical Attacks and turns
+King Attacks to threatened squares
+Attackers who have multiple targets and threaten king
+*/
     private static Int64 WinEval = Int64.MaxValue;
     private static Int64 LoseEval = Int64.MinValue;
 
     private static Random rand = new Random();
-    static byte materialWeight = 13;
-    static byte positionWeight = 2;
+    static readonly byte materialWeight = 15;
+    static readonly byte positionWeight = 2;
 
-    static byte QueenMaterial  = 120;
-    static byte RookMaterial   = 70;
-    static byte BishopMaterial = 60;
-    static byte KnightMaterial = 55;
+    /* Material */
+    static readonly byte QueenMaterial  = 120;
+    static readonly byte RookMaterial   = 70;
+    static readonly byte BishopMaterial = 60;
+    static readonly byte KnightMaterial = 55;
+    static readonly byte PawnMaterial   = 10;
 
-    static byte threatenedPenalty = 80;
-    static byte defendedBonus = 25;
+    /* Static Positional/Material Value */
+    static readonly uint QueenExistenceBonus = 500;
+    static readonly byte CastlePotentialBonus = 40;
+    static readonly byte CastleBonus = 125;
 
-    static byte PawnAdv0Material = 10;
-    static byte PawnAdv1Material = 15;
-    static byte PawnAdv2Material = 20;
-    static byte PawnAdv3Material = 25;
-    static byte PawnAdv4Material = 30;
-    static byte PawnAdv5Material = 45;
-    static byte PawnOutmostFilePenalty = 50;
-    static byte PawnOuterFilePenalty = 20;
+    static readonly byte[] PawnSquareTable = {
+        0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+        35, 45, 55, 58, 58, 55, 45, 35,
+        30, 35, 45, 48, 48, 45, 35, 30,
+        25, 30, 35, 38, 38, 35, 30, 25,
+        17, 22, 27, 30, 30, 27, 22, 17,
+        8 , 10, 15, 18, 18, 15, 10, 8 ,
+        0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+        0 , 0 , 0 , 0 , 0 , 0 , 0 , 0
+    };
 
-    static byte KingOpenValue   = 2;
-    static byte QueenOpenValue  = 7;
-    static byte RookOpenValue   = 4;
-    static byte BishopOpenValue = 13;
-    static byte KnightOpenValue = 6;
-    static byte PawnOpenValue   = 5;
+    static readonly byte[] RookSquareTable = {
+        20, 0 , 20, 20, 20, 20, 0 , 20,
+        20, 20, 20, 20, 20, 20, 20, 20,
+        20, 20, 20, 20, 20, 20, 20, 20,
+        20, 20, 20, 20, 20, 20, 20, 20,
+        20, 20, 20, 20, 20, 20, 20, 20,
+        20, 20, 20, 20, 20, 20, 20, 20,
+        20, 20, 20, 20, 20, 20, 20, 20,
+        20, 0 , 20, 20, 20, 20, 0 , 20
+    };
+
+    /* Lines of Attack */
+    static readonly byte threatenedPenalty = 80;
+    static readonly byte defendedBonus = 25;
+
+    /* Mobility */
+    static readonly byte KingOpenValue   = 2;
+    static readonly byte QueenOpenValue  = 7;
+    static readonly byte RookOpenValue   = 4;
+    static readonly byte BishopOpenValue = 13;
+    static readonly byte KnightOpenValue = 6;
+    static readonly byte PawnOpenValue   = 5;
 
     /* Attack */
-    static byte PawnAttackPawnValue   = 25;
-    static byte PawnAttackRookValue   = 90;
-    static byte PawnAttackKnightValue = 90;
-    static byte PawnAttackBishopValue = 20;
-    static byte PawnAttackQueenValue  = 100;
-    static byte PawnAttackKingValue   = 30;
+    static readonly byte PawnAttackPawnValue   = 50;
+    static readonly byte PawnAttackRookValue   = 100;
+    static readonly byte PawnAttackKnightValue = 90;
+    static readonly byte PawnAttackBishopValue = 90;
+    static readonly byte PawnAttackQueenValue  = 100;
+    static readonly byte PawnAttackKingValue   = 30;
 
-    static byte RookAttackPawnValue   = 30;
-    static byte RookAttackRookValue   = 10;
-    static byte RookAttackKnightValue = 50;
-    static byte RookAttackBishopValue = 50;
-    static byte RookAttackQueenValue  = 35;
-    static byte RookAttackKingValue   = 70;
+    static readonly byte RookAttackPawnValue   = 30;
+    static readonly byte RookAttackRookValue   = 10;
+    static readonly byte RookAttackKnightValue = 50;
+    static readonly byte RookAttackBishopValue = 50;
+    static readonly byte RookAttackQueenValue  = 35;
+    static readonly byte RookAttackKingValue   = 70;
 
-    static byte KnightAttackPawnValue   = 20;
-    static byte KnightAttackRookValue   = 60;
-    static byte KnightAttackKnightValue = 20;
-    static byte KnightAttackBishopValue = 60;
-    static byte KnightAttackQueenValue  = 90;
-    static byte KnightAttackKingValue   = 110;
+    static readonly byte KnightAttackPawnValue   = 20;
+    static readonly byte KnightAttackRookValue   = 60;
+    static readonly byte KnightAttackKnightValue = 20;
+    static readonly byte KnightAttackBishopValue = 60;
+    static readonly byte KnightAttackQueenValue  = 90;
+    static readonly byte KnightAttackKingValue   = 110;
 
-    static byte BishopAttackPawnValue   = 10;
-    static byte BishopAttackRookValue   = 60;
-    static byte BishopAttackKnightValue = 55;
-    static byte BishopAttackBishopValue = 30;
-    static byte BishopAttackQueenValue  = 40;
-    static byte BishopAttackKingValue   = 70;
+    static readonly byte BishopAttackPawnValue   = 10;
+    static readonly byte BishopAttackRookValue   = 60;
+    static readonly byte BishopAttackKnightValue = 55;
+    static readonly byte BishopAttackBishopValue = 30;
+    static readonly byte BishopAttackQueenValue  = 40;
+    static readonly byte BishopAttackKingValue   = 70;
 
-    static byte QueenAttackPawnValue   = 15;
-    static byte QueenAttackRookValue   = 10;
-    static byte QueenAttackKnightValue = 70;
-    static byte QueenAttackBishopValue = 10;
-    static byte QueenAttackQueenValue  = 25;
-    static byte QueenAttackKingValue   = 90;
+    static readonly byte QueenAttackPawnValue   = 15;
+    static readonly byte QueenAttackRookValue   = 10;
+    static readonly byte QueenAttackKnightValue = 70;
+    static readonly byte QueenAttackBishopValue = 10;
+    static readonly byte QueenAttackQueenValue  = 25;
+    static readonly byte QueenAttackKingValue   = 90;
 
-    static byte KingAttackPawnValue   = 60;
-    static byte KingAttackRookValue   = 60;
-    static byte KingAttackKnightValue = 60;
-    static byte KingAttackBishopValue = 60;
-    static byte KingAttackQueenValue  = 10;
+    static readonly byte KingAttackPawnValue   = 60;
+    static readonly byte KingAttackRookValue   = 60;
+    static readonly byte KingAttackKnightValue = 60;
+    static readonly byte KingAttackBishopValue = 60;
+    static readonly byte KingAttackQueenValue  = 10;
 
     /* Defend */
-    static byte PawnDefendPawnValue   = 50;
-    static byte PawnDefendRookValue   = 35;
-    static byte PawnDefendKnightValue = 50;
-    static byte PawnDefendBishopValue = 35;
-    static byte PawnDefendQueenValue  = 80;
-    static byte PawnDefendKingValue   = 20;
+    static readonly byte PawnDefendPawnValue   = 55;
+    static readonly byte PawnDefendRookValue   = 35;
+    static readonly byte PawnDefendKnightValue = 50;
+    static readonly byte PawnDefendBishopValue = 35;
+    static readonly byte PawnDefendQueenValue  = 80;
+    static readonly byte PawnDefendKingValue   = 20;
 
-    static byte RookDefendPawnValue   = 10;
-    static byte RookDefendRookValue   = 60;
-    static byte RookDefendKnightValue = 40;
-    static byte RookDefendBishopValue = 40;
-    static byte RookDefendQueenValue  = 40;
-    static byte RookDefendKingValue   = 40;
+    static readonly byte RookDefendPawnValue   = 10;
+    static readonly byte RookDefendRookValue   = 60;
+    static readonly byte RookDefendKnightValue = 40;
+    static readonly byte RookDefendBishopValue = 40;
+    static readonly byte RookDefendQueenValue  = 40;
+    static readonly byte RookDefendKingValue   = 40;
 
-    static byte KnightDefendPawnValue   = 50;
-    static byte KnightDefendRookValue   = 50;
-    static byte KnightDefendKnightValue = 50;
-    static byte KnightDefendBishopValue = 50;
-    static byte KnightDefendQueenValue  = 50;
-    static byte KnightDefendKingValue   = 10;
+    static readonly byte KnightDefendPawnValue   = 50;
+    static readonly byte KnightDefendRookValue   = 50;
+    static readonly byte KnightDefendKnightValue = 50;
+    static readonly byte KnightDefendBishopValue = 50;
+    static readonly byte KnightDefendQueenValue  = 50;
+    static readonly byte KnightDefendKingValue   = 10;
 
-    static byte BishopDefendPawnValue   = 20;
-    static byte BishopDefendRookValue   = 60;
-    static byte BishopDefendKnightValue = 60;
-    static byte BishopDefendBishopValue = 40;
-    static byte BishopDefendQueenValue  = 50;
-    static byte BishopDefendKingValue   = 10;
+    static readonly byte BishopDefendPawnValue   = 20;
+    static readonly byte BishopDefendRookValue   = 60;
+    static readonly byte BishopDefendKnightValue = 60;
+    static readonly byte BishopDefendBishopValue = 40;
+    static readonly byte BishopDefendQueenValue  = 50;
+    static readonly byte BishopDefendKingValue   = 10;
 
-    static byte QueenDefendPawnValue   = 10;
-    static byte QueenDefendRookValue   = 40;
-    static byte QueenDefendKnightValue = 60;
-    static byte QueenDefendBishopValue = 40;
-    static byte QueenDefendQueenValue  = 80;
-    static byte QueenDefendKingValue   = 50;
+    static readonly byte QueenDefendPawnValue   = 10;
+    static readonly byte QueenDefendRookValue   = 40;
+    static readonly byte QueenDefendKnightValue = 60;
+    static readonly byte QueenDefendBishopValue = 40;
+    static readonly byte QueenDefendQueenValue  = 80;
+    static readonly byte QueenDefendKingValue   = 50;
 
-    static byte KingDefendPawnValue   = 30;
-    static byte KingDefendRookValue   = 50;
-    static byte KingDefendKnightValue = 10;
-    static byte KingDefendBishopValue = 10;
-    static byte KingDefendQueenValue  = 10;
+    static readonly byte KingDefendPawnValue   = 30;
+    static readonly byte KingDefendRookValue   = 50;
+    static readonly byte KingDefendKnightValue = 10;
+    static readonly byte KingDefendBishopValue = 10;
+    static readonly byte KingDefendQueenValue  = 10;
 
     public static T RandomSelect<T>(List<T> sequence)
     {
@@ -350,39 +379,101 @@ public static class ChessStrategy
     {
         byte turnWhitePenalty = (byte)((state.turnIsWhite) ? 1 : 2);
         byte turnBlackPenalty = (byte)((state.turnIsWhite) ? 2 : 1);
+        UInt64 pieces;
+        UInt64 piece;
 
         // Potential
         UInt64 whiteMaterial = 0;
         UInt64 blackMaterial = 0;
         { // White Material
-            whiteMaterial = whiteMaterial + PawnAdv0Material * BitOps.CountBits(state.whitePawns & Rank2);
-            whiteMaterial = whiteMaterial + PawnAdv1Material * BitOps.CountBits(state.whitePawns & Rank3);
-            whiteMaterial = whiteMaterial + PawnAdv2Material * BitOps.CountBits(state.whitePawns & Rank4);
-            whiteMaterial = whiteMaterial + PawnAdv3Material * BitOps.CountBits(state.whitePawns & Rank5);
-            whiteMaterial = whiteMaterial + PawnAdv4Material * BitOps.CountBits(state.whitePawns & Rank6);
-            whiteMaterial = whiteMaterial + PawnAdv5Material * BitOps.CountBits(state.whitePawns & Rank7);
-            whiteMaterial = whiteMaterial - PawnOutmostFilePenalty * BitOps.CountBits(state.whitePawns & (AFile | HFile));
-            whiteMaterial = whiteMaterial - PawnOuterFilePenalty * BitOps.CountBits(state.whitePawns & (BFile | GFile));
+            pieces = state.whitePawns;
+            while (pieces != 0)
+            {
+                piece = BitOps.MSB(pieces);
+                pieces -= piece;
 
+                whiteMaterial += PawnSquareTable[BitOps.bbIndex(piece) - 1];
+            }
+            pieces = state.whiteRooks;
+            while (pieces != 0)
+            {
+                piece = BitOps.MSB(pieces);
+                pieces -= piece;
+
+                whiteMaterial += RookSquareTable[BitOps.bbIndex(piece) - 1];
+            }
+            whiteMaterial = whiteMaterial + PawnMaterial + BitOps.CountBits(state.whitePawns);
             whiteMaterial = whiteMaterial + RookMaterial * BitOps.CountBits(state.whiteRooks);
             whiteMaterial = whiteMaterial + KnightMaterial * BitOps.CountBits(state.whiteKnights);
             whiteMaterial = whiteMaterial + BishopMaterial * BitOps.CountBits(state.whiteBishops);
             whiteMaterial = whiteMaterial + QueenMaterial * BitOps.CountBits(state.whiteQueens);
+            if (state.whiteQueens != 0)
+            {
+                whiteMaterial = QueenExistenceBonus;
+            }
+            if (state.whiteCastleKS)
+            {
+                if (state.whiteKing != whiteKSDest)
+                {
+                    whiteMaterial += CastlePotentialBonus;
+                } else {
+                    whiteMaterial += CastleBonus;
+                }
+            }
+            if (state.whiteCastleQS)
+            {
+                if (state.whiteKing != whiteQSDest)
+                {
+                    whiteMaterial += CastlePotentialBonus;
+                } else {
+                    whiteMaterial += CastleBonus;
+                }
+            }
         } // End White Material
         { // Black Material
-            blackMaterial = blackMaterial + PawnAdv0Material * BitOps.CountBits(state.blackPawns & Rank7);
-            blackMaterial = blackMaterial + PawnAdv1Material * BitOps.CountBits(state.blackPawns & Rank6);
-            blackMaterial = blackMaterial + PawnAdv2Material * BitOps.CountBits(state.blackPawns & Rank5);
-            blackMaterial = blackMaterial + PawnAdv3Material * BitOps.CountBits(state.blackPawns & Rank4);
-            blackMaterial = blackMaterial + PawnAdv4Material * BitOps.CountBits(state.blackPawns & Rank3);
-            blackMaterial = blackMaterial + PawnAdv5Material * BitOps.CountBits(state.blackPawns & Rank2);
-            blackMaterial = blackMaterial - PawnOutmostFilePenalty * BitOps.CountBits(state.blackPawns & (AFile | HFile));
-            blackMaterial = blackMaterial - PawnOuterFilePenalty * BitOps.CountBits(state.blackPawns & (BFile | GFile));
+            pieces = state.blackPawns;
+            while (pieces != 0)
+            {
+                piece = BitOps.MSB(pieces);
+                pieces -= piece;
 
+                blackMaterial += PawnSquareTable[64 - BitOps.bbIndex(piece)];
+            }
+            pieces = state.blackRooks;
+            while (pieces != 0)
+            {
+                piece = BitOps.MSB(pieces);
+                pieces -= piece;
+
+                blackMaterial += RookSquareTable[BitOps.bbIndex(piece) - 1];
+            }
+            blackMaterial = blackMaterial + PawnMaterial + BitOps.CountBits(state.blackPawns);
             blackMaterial = blackMaterial + RookMaterial * BitOps.CountBits(state.blackRooks);
             blackMaterial = blackMaterial + KnightMaterial * BitOps.CountBits(state.blackKnights);
             blackMaterial = blackMaterial + BishopMaterial * BitOps.CountBits(state.blackBishops);
             blackMaterial = blackMaterial + QueenMaterial * BitOps.CountBits(state.blackQueens);
+            if (state.blackQueens != 0)
+            {
+                blackMaterial = QueenExistenceBonus;
+            }
+            if (state.blackCastleKS)
+            {
+                if (state.blackKing != blackKSDest)
+                {
+                    blackMaterial += CastlePotentialBonus;
+                } else {
+                    blackMaterial += CastleBonus;
+                }
+            }
+            if (state.blackCastleQS)
+            {
+                if (state.blackKing != blackQSDest)
+                {
+                    blackMaterial += CastlePotentialBonus;
+                } else {
+                    blackMaterial += CastleBonus;
+                }
+            }
         } // End Black Material
 
         // Position

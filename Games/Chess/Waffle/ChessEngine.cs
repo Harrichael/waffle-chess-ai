@@ -157,6 +157,10 @@ public class ChessEngine
             }
         }
         PieceType attackedPiece = this.pieceAtTile(destTile);
+        if (movedPiece != PieceType.Pawn && attackedPiece == PieceType.EnPass)
+        {
+            attackedPiece = PieceType.None;
+        }
         PieceType promotePiece = (PieceType)Enum.Parse(typeof(PieceType), promote);
 
         var action = new XAction(
