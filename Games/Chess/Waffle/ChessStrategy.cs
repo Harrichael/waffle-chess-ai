@@ -19,13 +19,13 @@ Attackers who have multiple targets and threaten king
     private static Int64 LoseEval = Int64.MinValue;
 
     private static Random rand = new Random();
-    static readonly byte materialWeight = 15;
+    static readonly byte materialWeight = 16;
     static readonly byte positionWeight = 2;
 
     /* Material */
     static readonly byte QueenMaterial  = 120;
     static readonly byte RookMaterial   = 70;
-    static readonly byte BishopMaterial = 60;
+    static readonly byte BishopMaterial = 70;
     static readonly byte KnightMaterial = 55;
     static readonly byte PawnMaterial   = 10;
 
@@ -57,8 +57,10 @@ Attackers who have multiple targets and threaten king
     };
 
     /* Lines of Attack */
-    static readonly byte threatenedPenalty = 80;
+    static readonly byte threatenedPenalty = 40;
     static readonly byte defendedBonus = 25;
+    static readonly byte turnSafeMult = 2;
+    static readonly byte turnThreatMult = 3;
 
     /* Mobility */
     static readonly byte KingOpenValue   = 2;
@@ -88,21 +90,21 @@ Attackers who have multiple targets and threaten king
     static readonly byte KnightAttackKnightValue = 20;
     static readonly byte KnightAttackBishopValue = 60;
     static readonly byte KnightAttackQueenValue  = 90;
-    static readonly byte KnightAttackKingValue   = 110;
+    static readonly byte KnightAttackKingValue   = 60;
 
-    static readonly byte BishopAttackPawnValue   = 10;
+    static readonly byte BishopAttackPawnValue   = 8;
     static readonly byte BishopAttackRookValue   = 60;
     static readonly byte BishopAttackKnightValue = 55;
     static readonly byte BishopAttackBishopValue = 30;
     static readonly byte BishopAttackQueenValue  = 40;
-    static readonly byte BishopAttackKingValue   = 70;
+    static readonly byte BishopAttackKingValue   = 45;
 
     static readonly byte QueenAttackPawnValue   = 15;
     static readonly byte QueenAttackRookValue   = 10;
-    static readonly byte QueenAttackKnightValue = 70;
+    static readonly byte QueenAttackKnightValue = 60;
     static readonly byte QueenAttackBishopValue = 10;
     static readonly byte QueenAttackQueenValue  = 25;
-    static readonly byte QueenAttackKingValue   = 90;
+    static readonly byte QueenAttackKingValue   = 70;
 
     static readonly byte KingAttackPawnValue   = 60;
     static readonly byte KingAttackRookValue   = 60;
@@ -125,12 +127,12 @@ Attackers who have multiple targets and threaten king
     static readonly byte RookDefendQueenValue  = 40;
     static readonly byte RookDefendKingValue   = 40;
 
-    static readonly byte KnightDefendPawnValue   = 50;
+    static readonly byte KnightDefendPawnValue   = 45;
     static readonly byte KnightDefendRookValue   = 50;
     static readonly byte KnightDefendKnightValue = 50;
     static readonly byte KnightDefendBishopValue = 50;
-    static readonly byte KnightDefendQueenValue  = 50;
-    static readonly byte KnightDefendKingValue   = 10;
+    static readonly byte KnightDefendQueenValue  = 55;
+    static readonly byte KnightDefendKingValue   = 70;
 
     static readonly byte BishopDefendPawnValue   = 20;
     static readonly byte BishopDefendRookValue   = 60;
@@ -377,8 +379,8 @@ Attackers who have multiple targets and threaten king
 
     public static Int64 Heuristic(XBoard state, bool playerIsWhite)
     {
-        byte turnWhitePenalty = (byte)((state.turnIsWhite) ? 1 : 2);
-        byte turnBlackPenalty = (byte)((state.turnIsWhite) ? 2 : 1);
+        byte turnWhitePenalty = (byte)((state.turnIsWhite) ? turnSafeMult : turnThreatMult);
+        byte turnBlackPenalty = (byte)((state.turnIsWhite) ? turnSafeMult : turnSafeMult);
         UInt64 pieces;
         UInt64 piece;
 
@@ -402,14 +404,14 @@ Attackers who have multiple targets and threaten king
 
                 whiteMaterial += RookSquareTable[BitOps.bbIndex(piece) - 1];
             }
-            whiteMaterial = whiteMaterial + PawnMaterial + BitOps.CountBits(state.whitePawns);
-            whiteMaterial = whiteMaterial + RookMaterial * BitOps.CountBits(state.whiteRooks);
-            whiteMaterial = whiteMaterial + KnightMaterial * BitOps.CountBits(state.whiteKnights);
-            whiteMaterial = whiteMaterial + BishopMaterial * BitOps.CountBits(state.whiteBishops);
-            whiteMaterial = whiteMaterial + QueenMaterial * BitOps.CountBits(state.whiteQueens);
+            whiteMaterial += PawnMaterial * BitOps.CountBits(state.whitePawns);
+            whiteMaterial += RookMaterial * BitOps.CountBits(state.whiteRooks);
+            whiteMaterial += KnightMaterial * BitOps.CountBits(state.whiteKnights);
+            whiteMaterial += BishopMaterial * BitOps.CountBits(state.whiteBishops);
+            whiteMaterial += QueenMaterial * BitOps.CountBits(state.whiteQueens);
             if (state.whiteQueens != 0)
             {
-                whiteMaterial = QueenExistenceBonus;
+                whiteMaterial += QueenExistenceBonus;
             }
             if (state.whiteCastleKS)
             {
@@ -447,14 +449,14 @@ Attackers who have multiple targets and threaten king
 
                 blackMaterial += RookSquareTable[BitOps.bbIndex(piece) - 1];
             }
-            blackMaterial = blackMaterial + PawnMaterial + BitOps.CountBits(state.blackPawns);
-            blackMaterial = blackMaterial + RookMaterial * BitOps.CountBits(state.blackRooks);
-            blackMaterial = blackMaterial + KnightMaterial * BitOps.CountBits(state.blackKnights);
-            blackMaterial = blackMaterial + BishopMaterial * BitOps.CountBits(state.blackBishops);
-            blackMaterial = blackMaterial + QueenMaterial * BitOps.CountBits(state.blackQueens);
+            blackMaterial += PawnMaterial * BitOps.CountBits(state.blackPawns);
+            blackMaterial += RookMaterial * BitOps.CountBits(state.blackRooks);
+            blackMaterial += KnightMaterial * BitOps.CountBits(state.blackKnights);
+            blackMaterial += BishopMaterial * BitOps.CountBits(state.blackBishops);
+            blackMaterial += QueenMaterial * BitOps.CountBits(state.blackQueens);
             if (state.blackQueens != 0)
             {
-                blackMaterial = QueenExistenceBonus;
+                blackMaterial += QueenExistenceBonus;
             }
             if (state.blackCastleKS)
             {
