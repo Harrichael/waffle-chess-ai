@@ -19,18 +19,18 @@ Attackers who have multiple targets and threaten king
     private static Int64 LoseEval = Int64.MinValue;
 
     private static Random rand = new Random();
-    static readonly byte materialWeight = 16;
+    static readonly byte materialWeight = 15;
     static readonly byte positionWeight = 2;
 
     /* Material */
     static readonly byte QueenMaterial  = 120;
-    static readonly byte RookMaterial   = 70;
+    static readonly byte RookMaterial   = 80;
     static readonly byte BishopMaterial = 70;
     static readonly byte KnightMaterial = 55;
     static readonly byte PawnMaterial   = 10;
 
     /* Static Positional/Material Value */
-    static readonly uint QueenExistenceBonus = 500;
+    static readonly uint QueenExistenceBonus = 250;
     static readonly byte CastlePotentialBonus = 40;
     static readonly byte CastleBonus = 125;
 
@@ -57,10 +57,10 @@ Attackers who have multiple targets and threaten king
     };
 
     /* Lines of Attack */
-    static readonly byte threatenedPenalty = 40;
-    static readonly byte defendedBonus = 25;
+    static readonly byte threatenedPenalty = 50;
+    static readonly byte defendedBonus = 30;
     static readonly byte turnSafeMult = 2;
-    static readonly byte turnThreatMult = 3;
+    static readonly byte turnThreatMult = 5;
 
     /* Mobility */
     static readonly byte KingOpenValue   = 2;
@@ -90,27 +90,26 @@ Attackers who have multiple targets and threaten king
     static readonly byte KnightAttackKnightValue = 20;
     static readonly byte KnightAttackBishopValue = 60;
     static readonly byte KnightAttackQueenValue  = 90;
-    static readonly byte KnightAttackKingValue   = 60;
+    static readonly byte KnightAttackKingValue   = 96;
 
     static readonly byte BishopAttackPawnValue   = 8;
     static readonly byte BishopAttackRookValue   = 60;
     static readonly byte BishopAttackKnightValue = 55;
     static readonly byte BishopAttackBishopValue = 30;
     static readonly byte BishopAttackQueenValue  = 40;
-    static readonly byte BishopAttackKingValue   = 45;
+    static readonly byte BishopAttackKingValue   = 60;
 
     static readonly byte QueenAttackPawnValue   = 15;
     static readonly byte QueenAttackRookValue   = 10;
     static readonly byte QueenAttackKnightValue = 60;
     static readonly byte QueenAttackBishopValue = 10;
     static readonly byte QueenAttackQueenValue  = 25;
-    static readonly byte QueenAttackKingValue   = 70;
+    static readonly byte QueenAttackKingValue   = 80;
 
     static readonly byte KingAttackPawnValue   = 60;
     static readonly byte KingAttackRookValue   = 60;
     static readonly byte KingAttackKnightValue = 60;
     static readonly byte KingAttackBishopValue = 60;
-    static readonly byte KingAttackQueenValue  = 10;
 
     /* Defend */
     static readonly byte PawnDefendPawnValue   = 55;
@@ -1019,7 +1018,6 @@ Attackers who have multiple targets and threaten king
             whitePosition = whitePosition + KingAttackRookValue   * BitOps.CountBits(kingAttacks & state.blackRooks  );
             whitePosition = whitePosition + KingAttackKnightValue * BitOps.CountBits(kingAttacks & state.blackKnights);
             whitePosition = whitePosition + KingAttackBishopValue * BitOps.CountBits(kingAttacks & state.blackBishops);
-            whitePosition = whitePosition + KingAttackQueenValue  * BitOps.CountBits(kingAttacks & state.blackQueens );
 
             whitePosition = whitePosition + KingDefendPawnValue   * BitOps.CountBits(kingAttacks & state.whitePawns  );
             whitePosition = whitePosition + KingDefendRookValue   * BitOps.CountBits(kingAttacks & state.whiteRooks  );
@@ -1038,7 +1036,6 @@ Attackers who have multiple targets and threaten king
             blackPosition = blackPosition + KingAttackRookValue   * BitOps.CountBits(kingAttacks & state.whiteRooks  );
             blackPosition = blackPosition + KingAttackKnightValue * BitOps.CountBits(kingAttacks & state.whiteKnights);
             blackPosition = blackPosition + KingAttackBishopValue * BitOps.CountBits(kingAttacks & state.whiteBishops);
-            blackPosition = blackPosition + KingAttackQueenValue  * BitOps.CountBits(kingAttacks & state.whiteQueens );
 
             blackPosition = blackPosition + KingDefendPawnValue   * BitOps.CountBits(kingAttacks & state.blackPawns  );
             blackPosition = blackPosition + KingDefendRookValue   * BitOps.CountBits(kingAttacks & state.blackRooks  );
