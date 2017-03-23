@@ -33,9 +33,9 @@ public static class ChessStrategy
     static byte PawnOuterFilePenalty = 20;
 
     static byte KingOpenValue   = 2;
-    static byte QueenOpenValue  = 6;
-    static byte RookOpenValue   = 5;
-    static byte BishopOpenValue = 12;
+    static byte QueenOpenValue  = 7;
+    static byte RookOpenValue   = 4;
+    static byte BishopOpenValue = 13;
     static byte KnightOpenValue = 6;
     static byte PawnOpenValue   = 5;
 

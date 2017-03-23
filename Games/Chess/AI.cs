@@ -106,7 +106,7 @@ namespace Joueur.cs.Games.Chess
                 }
                 this.engine.OpponentMove(fromFR, toFR, promote);
             }
-            this.PrintCurrentBoard();
+            this.engine.Print();
             var moveStrings = this.engine.MakeMove();
             Console.WriteLine("Move: " + moveStrings.Item1 + "    " + moveStrings.Item2);
             var piece = this.Player.Pieces.First(p => (p.File + p.Rank) == moveStrings.Item1);
