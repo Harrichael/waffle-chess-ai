@@ -24,12 +24,12 @@ public static class ChessStrategy
     static byte defendedBonus = 25;
 
     static byte PawnAdv0Material = 10;
-    static byte PawnAdv1Material = 20;
-    static byte PawnAdv2Material = 40;
-    static byte PawnAdv3Material = 45;
-    static byte PawnAdv4Material = 50;
-    static byte PawnAdv5Material = 55;
-    static byte PawnOutmostFilePenalty = 30;
+    static byte PawnAdv1Material = 15;
+    static byte PawnAdv2Material = 20;
+    static byte PawnAdv3Material = 25;
+    static byte PawnAdv4Material = 30;
+    static byte PawnAdv5Material = 45;
+    static byte PawnOutmostFilePenalty = 50;
     static byte PawnOuterFilePenalty = 20;
 
     static byte KingOpenValue   = 2;
