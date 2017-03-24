@@ -23,24 +23,25 @@ Attackers who have multiple targets and threaten king
     static readonly byte positionWeight = 2;
 
     /* Material */
-    static readonly byte QueenMaterial  = 120;
-    static readonly byte RookMaterial   = 80;
+    static readonly byte QueenMaterial  = 180;
+    static readonly byte RookMaterial   = 100;
     static readonly byte BishopMaterial = 70;
-    static readonly byte KnightMaterial = 55;
-    static readonly byte PawnMaterial   = 10;
+    static readonly byte KnightMaterial = 60;
+    static readonly byte PawnMaterial   = 12;
 
     /* Static Positional/Material Value */
-    static readonly uint QueenExistenceBonus = 250;
+    static readonly uint QueenExistenceBonus = 500;
     static readonly byte CastlePotentialBonus = 40;
+    static readonly byte BishopPairBonus = 20;
     static readonly byte CastleBonus = 125;
 
     static readonly byte[] PawnSquareTable = {
         0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
-        35, 45, 55, 58, 58, 55, 45, 35,
-        30, 35, 45, 48, 48, 45, 35, 30,
-        25, 30, 35, 38, 38, 35, 30, 25,
-        17, 22, 27, 30, 30, 27, 22, 17,
-        8 , 10, 15, 18, 18, 15, 10, 8 ,
+        50, 50, 50, 50, 50, 50, 50, 50,
+        10, 10, 20, 30, 30, 20, 10, 10,
+        8 , 8 , 15, 25, 25, 15, 8 , 8 ,
+        0 , 8 , 12, 20, 20, 12, 8 , 0 ,
+        8 , 8 , 10, 18, 18, 10, 8 , 8 ,
         0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
         0 , 0 , 0 , 0 , 0 , 0 , 0 , 0
     };
@@ -56,11 +57,22 @@ Attackers who have multiple targets and threaten king
         20, 0 , 20, 20, 20, 20, 0 , 20
     };
 
+    static readonly byte[] KingSquareTable = {
+        0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+        0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+        0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+        0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+        0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+        0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+        30, 30, 0 , 0 , 0 , 0 , 30, 30,
+        30, 45, 20, 0 , 0 , 20, 45, 30
+    };
+
     /* Lines of Attack */
     static readonly byte threatenedPenalty = 50;
     static readonly byte defendedBonus = 30;
     static readonly byte turnSafeMult = 2;
-    static readonly byte turnThreatMult = 5;
+    static readonly byte turnThreatMult = 6;
 
     /* Mobility */
     static readonly byte KingOpenValue   = 2;
@@ -393,7 +405,7 @@ Attackers who have multiple targets and threaten king
                 piece = BitOps.MSB(pieces);
                 pieces -= piece;
 
-                whiteMaterial += PawnSquareTable[BitOps.bbIndex(piece) - 1];
+                whiteMaterial += PawnSquareTable[64 - BitOps.bbIndex(piece)];
             }
             pieces = state.whiteRooks;
             while (pieces != 0)
@@ -401,8 +413,10 @@ Attackers who have multiple targets and threaten king
                 piece = BitOps.MSB(pieces);
                 pieces -= piece;
 
-                whiteMaterial += RookSquareTable[BitOps.bbIndex(piece) - 1];
+                whiteMaterial += RookSquareTable[64 - BitOps.bbIndex(piece)];
             }
+            whiteMaterial += KingSquareTable[64 - BitOps.bbIndex(state.whiteKing)];
+
             whiteMaterial += PawnMaterial * BitOps.CountBits(state.whitePawns);
             whiteMaterial += RookMaterial * BitOps.CountBits(state.whiteRooks);
             whiteMaterial += KnightMaterial * BitOps.CountBits(state.whiteKnights);
@@ -430,6 +444,9 @@ Attackers who have multiple targets and threaten king
                     whiteMaterial += CastleBonus;
                 }
             }
+            if (BitOps.CountBits(state.whiteBishops) >= 2) {
+                whiteMaterial += BishopPairBonus;
+            }
         } // End White Material
         { // Black Material
             pieces = state.blackPawns;
@@ -438,7 +455,7 @@ Attackers who have multiple targets and threaten king
                 piece = BitOps.MSB(pieces);
                 pieces -= piece;
 
-                blackMaterial += PawnSquareTable[64 - BitOps.bbIndex(piece)];
+                blackMaterial += PawnSquareTable[BitOps.bbIndex(piece) - 1];
             }
             pieces = state.blackRooks;
             while (pieces != 0)
@@ -448,6 +465,8 @@ Attackers who have multiple targets and threaten king
 
                 blackMaterial += RookSquareTable[BitOps.bbIndex(piece) - 1];
             }
+            blackMaterial += KingSquareTable[BitOps.bbIndex(state.blackKing) - 1];
+
             blackMaterial += PawnMaterial * BitOps.CountBits(state.blackPawns);
             blackMaterial += RookMaterial * BitOps.CountBits(state.blackRooks);
             blackMaterial += KnightMaterial * BitOps.CountBits(state.blackKnights);
@@ -474,6 +493,9 @@ Attackers who have multiple targets and threaten king
                 } else {
                     blackMaterial += CastleBonus;
                 }
+            }
+            if (BitOps.CountBits(state.blackBishops) >= 2) {
+                blackMaterial += BishopPairBonus;
             }
         } // End Black Material
 
