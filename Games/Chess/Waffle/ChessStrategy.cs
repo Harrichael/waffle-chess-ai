@@ -47,14 +47,14 @@ Attackers who have multiple targets and threaten king
     };
 
     static readonly byte[] RookSquareTable = {
-        20, 0 , 20, 20, 20, 20, 0 , 20,
         20, 20, 20, 20, 20, 20, 20, 20,
         20, 20, 20, 20, 20, 20, 20, 20,
         20, 20, 20, 20, 20, 20, 20, 20,
         20, 20, 20, 20, 20, 20, 20, 20,
         20, 20, 20, 20, 20, 20, 20, 20,
         20, 20, 20, 20, 20, 20, 20, 20,
-        20, 0 , 20, 20, 20, 20, 0 , 20
+        20, 20, 20, 20, 20, 20, 20, 20,
+        20, 0 , 20, 30, 20, 30, 0 , 20
     };
 
     static readonly byte[] KingSquareTable = {
@@ -64,8 +64,8 @@ Attackers who have multiple targets and threaten king
         0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
         0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
         0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
-        30, 30, 0 , 0 , 0 , 0 , 30, 30,
-        30, 45, 20, 0 , 0 , 20, 45, 30
+        30, 30, 10, 10, 10, 10, 30, 30,
+        30, 45, 30, 10, 10, 20, 45, 30
     };
 
     /* Lines of Attack */
@@ -86,8 +86,8 @@ Attackers who have multiple targets and threaten king
     static readonly byte PawnAttackPawnValue   = 50;
     static readonly byte PawnAttackRookValue   = 100;
     static readonly byte PawnAttackKnightValue = 90;
-    static readonly byte PawnAttackBishopValue = 90;
-    static readonly byte PawnAttackQueenValue  = 100;
+    static readonly byte PawnAttackBishopValue = 110;
+    static readonly byte PawnAttackQueenValue  = 135;
     static readonly byte PawnAttackKingValue   = 30;
 
     static readonly byte RookAttackPawnValue   = 30;
@@ -97,7 +97,7 @@ Attackers who have multiple targets and threaten king
     static readonly byte RookAttackQueenValue  = 35;
     static readonly byte RookAttackKingValue   = 70;
 
-    static readonly byte KnightAttackPawnValue   = 20;
+    static readonly byte KnightAttackPawnValue   = 15;
     static readonly byte KnightAttackRookValue   = 60;
     static readonly byte KnightAttackKnightValue = 20;
     static readonly byte KnightAttackBishopValue = 60;
@@ -105,11 +105,11 @@ Attackers who have multiple targets and threaten king
     static readonly byte KnightAttackKingValue   = 96;
 
     static readonly byte BishopAttackPawnValue   = 8;
-    static readonly byte BishopAttackRookValue   = 60;
-    static readonly byte BishopAttackKnightValue = 55;
+    static readonly byte BishopAttackRookValue   = 80;
+    static readonly byte BishopAttackKnightValue = 65;
     static readonly byte BishopAttackBishopValue = 30;
     static readonly byte BishopAttackQueenValue  = 40;
-    static readonly byte BishopAttackKingValue   = 60;
+    static readonly byte BishopAttackKingValue   = 55;
 
     static readonly byte QueenAttackPawnValue   = 15;
     static readonly byte QueenAttackRookValue   = 10;
