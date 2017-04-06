@@ -196,22 +196,40 @@ Attackers who have multiple targets and threaten king
 
     public static Tuple<XAction, Int64> DL_ABMinimax(XBoard state, int depth, bool playerIsWhite)
     {
+        Int64 alpha = Int64.MinValue;
+        Int64 beta = Int64.MaxValue;
         var children = LegalMoves(state);
         var bestChild = children[0];
         state.Apply(bestChild);
-        var bestVal = DL_ABMin(state, depth-1, playerIsWhite);
+        var bestVal = DL_ABMin(state, depth-1, playerIsWhite, alpha, beta);
         Console.Write("(" + ChessEngine.tileToFR(bestChild.srcTile) + "-" + ChessEngine.tileToFR(bestChild.destTile) + " " + bestVal + " " + state.whiteCheck + " " + state.blackCheck + ")\t");
         state.Undo();
+        if (bestVal > alpha)
+        {
+            alpha = bestVal;
+            if (bestVal >= beta)
+            {
+                return Tuple.Create(bestChild, bestVal);
+            }
+        }
         foreach(var child in children.Skip(1))
         {
             state.Apply(child);
-            var val = DL_ABMin(state, depth-1, playerIsWhite);
-        Console.Write("(" + ChessEngine.tileToFR(child.srcTile) + "-" + ChessEngine.tileToFR(child.destTile) + " " + val + " " + state.whiteCheck + " " + state.blackCheck + ")\t");
+            var val = DL_ABMin(state, depth-1, playerIsWhite, alpha, beta);
+            Console.Write("(" + ChessEngine.tileToFR(child.srcTile) + "-" + ChessEngine.tileToFR(child.destTile) + " " + val + " " + state.whiteCheck + " " + state.blackCheck + ")\t");
             state.Undo();
             if (val > bestVal)
             {
                 bestChild = child;
                 bestVal = val;
+                if (bestVal > alpha)
+                {
+                    alpha = bestVal;
+                    if (bestVal >= beta)
+                    {
+                        return Tuple.Create(bestChild, bestVal);
+                    }
+                }
             }
         }
         Console.WriteLine("");
@@ -220,7 +238,7 @@ Attackers who have multiple targets and threaten king
         return Tuple.Create(bestChild, bestVal);
     }
 
-    private static Int64 DL_ABMax(XBoard state, int depth, bool maxWhite)
+    private static Int64 DL_ABMax(XBoard state, int depth, bool maxWhite, Int64 alpha, Int64 beta)
     {
         if (state.stateHistory.ContainsKey(state.zobristHash))
         {
@@ -275,24 +293,40 @@ Attackers who have multiple targets and threaten king
         }
 
         state.Apply(children[0]);
-        var maxH = DL_ABMin(state, depth-1, maxWhite);
+        var maxH = DL_ABMin(state, depth-1, maxWhite, alpha, beta);
         state.Undo();
+        if (maxH > alpha)
+        {
+            alpha = maxH;
+            if (maxH >= beta)
+            {
+                return beta;
+            }
+        }
 
         foreach(var child in children.Skip(1))
         {
             state.Apply(child);
-            var hVal = DL_ABMin(state, depth-1, maxWhite);
+            var hVal = DL_ABMin(state, depth-1, maxWhite, alpha, beta);
             state.Undo();
 
             if (hVal > maxH)
             {
                 maxH = hVal;
+                if (maxH > alpha)
+                {
+                    alpha = maxH;
+                    if (maxH >= beta)
+                    {
+                        return beta;
+                    }
+                }
             }
         }
         return maxH;
     }
 
-    private static Int64 DL_ABMin(XBoard state, int depth, bool maxWhite)
+    private static Int64 DL_ABMin(XBoard state, int depth, bool maxWhite, Int64 alpha, Int64 beta)
     {
         if (state.stateHistory.ContainsKey(state.zobristHash))
         {
@@ -347,18 +381,34 @@ Attackers who have multiple targets and threaten king
         }
 
         state.Apply(children[0]);
-        var minH = DL_ABMax(state, depth-1, maxWhite);
+        var minH = DL_ABMax(state, depth-1, maxWhite, alpha, beta);
         state.Undo();
+        if (minH < beta)
+        {
+            beta = minH;
+            if (minH < alpha)
+            {
+                return alpha;
+            }
+        }
 
         foreach(var child in children.Skip(1))
         {
             state.Apply(child);
-            var hVal = DL_ABMax(state, depth-1, maxWhite);
+            var hVal = DL_ABMax(state, depth-1, maxWhite, alpha, beta);
             state.Undo();
 
             if (hVal < minH)
             {
                 minH = hVal;
+                if (minH < beta)
+                {
+                    beta = minH;
+                    if (minH < alpha)
+                    {
+                        return alpha;
+                    }
+                }
             }
         }
         return minH;
