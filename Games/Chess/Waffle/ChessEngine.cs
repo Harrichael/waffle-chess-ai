@@ -180,7 +180,7 @@ public class ChessEngine
         var moves = ChessRules.LegalMoves(this.board);
         Console.WriteLine(moves.Count());
 
-        var action = ChessStrategy.IDL_Minimax(this.board, 3, this.aiIsWhite);
+        var action = ChessStrategy.TLID_ABMinimax(this.board, 25, this.aiIsWhite);
         var zobrist = this.board.zobristHash;
         this.board.Apply(action);
         Console.Write("Zobrist state counter: ");

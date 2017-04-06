@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Diagnostics;
 
 using static ChessRules;
 
@@ -170,36 +171,41 @@ Attackers who have multiple targets and threaten king
         return sequence[rand.Next(sequence.Count())];
     }
 
-    public static XAction IDL_Minimax(XBoard state, int depth, bool playerIsWhite)
+    public static XAction TLID_ABMinimax(XBoard state, int limitMS, bool playerIsWhite)
     {
-        Tuple<XAction, Int64> action_eval = DL_Minimax(state, 1, playerIsWhite);
+        Stopwatch timer = new Stopwatch();
+        int depth = 1;
+        timer.Start();
+        Tuple<XAction, Int64> action_eval = DL_ABMinimax(state, depth, playerIsWhite);
         if (action_eval.Item2 == WinEval)
         {
             return action_eval.Item1;
         }
-        for (int d = 2; d <= depth; d++)
+        while (timer.ElapsedMilliseconds < limitMS)
         {
-            action_eval = DL_Minimax(state, d, playerIsWhite);
+            depth += 1;
+            action_eval = DL_ABMinimax(state, depth, playerIsWhite);
             if (action_eval.Item2 == WinEval)
             {
                 return action_eval.Item1;
             }
         }
+        timer.Stop();
         return action_eval.Item1;
     }
 
-    public static Tuple<XAction, Int64> DL_Minimax(XBoard state, int depth, bool playerIsWhite)
+    public static Tuple<XAction, Int64> DL_ABMinimax(XBoard state, int depth, bool playerIsWhite)
     {
         var children = LegalMoves(state);
         var bestChild = children[0];
         state.Apply(bestChild);
-        var bestVal = DL_Min(state, depth-1, playerIsWhite);
+        var bestVal = DL_ABMin(state, depth-1, playerIsWhite);
         Console.Write("(" + ChessEngine.tileToFR(bestChild.srcTile) + "-" + ChessEngine.tileToFR(bestChild.destTile) + " " + bestVal + " " + state.whiteCheck + " " + state.blackCheck + ")\t");
         state.Undo();
         foreach(var child in children.Skip(1))
         {
             state.Apply(child);
-            var val = DL_Min(state, depth-1, playerIsWhite);
+            var val = DL_ABMin(state, depth-1, playerIsWhite);
         Console.Write("(" + ChessEngine.tileToFR(child.srcTile) + "-" + ChessEngine.tileToFR(child.destTile) + " " + val + " " + state.whiteCheck + " " + state.blackCheck + ")\t");
             state.Undo();
             if (val > bestVal)
@@ -214,7 +220,7 @@ Attackers who have multiple targets and threaten king
         return Tuple.Create(bestChild, bestVal);
     }
 
-    private static Int64 DL_Max(XBoard state, int depth, bool maxWhite)
+    private static Int64 DL_ABMax(XBoard state, int depth, bool maxWhite)
     {
         if (state.stateHistory.ContainsKey(state.zobristHash))
         {
@@ -269,13 +275,13 @@ Attackers who have multiple targets and threaten king
         }
 
         state.Apply(children[0]);
-        var maxH = DL_Min(state, depth-1, maxWhite);
+        var maxH = DL_ABMin(state, depth-1, maxWhite);
         state.Undo();
 
         foreach(var child in children.Skip(1))
         {
             state.Apply(child);
-            var hVal = DL_Min(state, depth-1, maxWhite);
+            var hVal = DL_ABMin(state, depth-1, maxWhite);
             state.Undo();
 
             if (hVal > maxH)
@@ -286,7 +292,7 @@ Attackers who have multiple targets and threaten king
         return maxH;
     }
 
-    private static Int64 DL_Min(XBoard state, int depth, bool maxWhite)
+    private static Int64 DL_ABMin(XBoard state, int depth, bool maxWhite)
     {
         if (state.stateHistory.ContainsKey(state.zobristHash))
         {
@@ -341,13 +347,13 @@ Attackers who have multiple targets and threaten king
         }
 
         state.Apply(children[0]);
-        var minH = DL_Max(state, depth-1, maxWhite);
+        var minH = DL_ABMax(state, depth-1, maxWhite);
         state.Undo();
 
         foreach(var child in children.Skip(1))
         {
             state.Apply(child);
-            var hVal = DL_Max(state, depth-1, maxWhite);
+            var hVal = DL_ABMax(state, depth-1, maxWhite);
             state.Undo();
 
             if (hVal < minH)
