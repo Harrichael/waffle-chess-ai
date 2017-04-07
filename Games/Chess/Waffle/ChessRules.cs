@@ -436,7 +436,7 @@ public static class ChessRules
             }
         }
 
-        return neighbors.Where(n => !invalidNeighbors.Contains(n)).OrderBy(n => rand.Next()).ToList();
+        return neighbors.Where(n => !invalidNeighbors.Contains(n)).OrderBy(n => n.attackType == PieceType.None).ThenBy(n => rand.Next()).ToList();
     } // End LegalMoves
 
     public static UInt64 Threats(XBoard state, UInt64 tile)
