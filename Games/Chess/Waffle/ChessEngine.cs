@@ -183,7 +183,7 @@ public class ChessEngine
         var action = ChessStrategy.TLID_ABMinimax(this.board, 250, this.aiIsWhite);
         var zobrist = this.board.zobristHash;
         this.board.Apply(action);
-        Console.Write("Zobrist state counter: ");
+        Console.Write("\nZobrist state counter: ");
         Console.WriteLine(this.board.stateHistory[zobrist]);
         Console.Write("50 Move Counter: ");
         Console.WriteLine(this.board.halfMoveClock);

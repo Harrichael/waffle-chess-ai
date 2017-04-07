@@ -12,12 +12,13 @@ public static class ChessStrategy
 /*
 TODO
 
+Fix Castling
 Symmetrical Attacks and turns
 King Attacks to threatened squares
 Attackers who have multiple targets and threaten king
 */
-    private static Int64 WinEval = Int64.MaxValue;
-    private static Int64 LoseEval = Int64.MinValue;
+    private static Int64 WinEval = (Int64.MaxValue-1);
+    private static Int64 LoseEval = -WinEval;
 
     private static Random rand = new Random();
     static readonly byte materialWeight = 15;
@@ -66,7 +67,7 @@ Attackers who have multiple targets and threaten king
         0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
         0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
         30, 30, 10, 10, 10, 10, 30, 30,
-        30, 45, 30, 10, 10, 20, 45, 30
+        30, 45, 45, 10, 10, 20, 45, 30
     };
 
     /* Lines of Attack */
@@ -179,6 +180,7 @@ Attackers who have multiple targets and threaten king
         Tuple<XAction, Int64> action_eval = DL_ABMinimax(state, depth, playerIsWhite);
         if (action_eval.Item2 == WinEval)
         {
+            timer.Stop();
             return action_eval.Item1;
         }
         while (timer.ElapsedMilliseconds < limitMS)
@@ -187,6 +189,7 @@ Attackers who have multiple targets and threaten king
             action_eval = DL_ABMinimax(state, depth, playerIsWhite);
             if (action_eval.Item2 == WinEval)
             {
+                timer.Stop();
                 return action_eval.Item1;
             }
         }
@@ -196,22 +199,15 @@ Attackers who have multiple targets and threaten king
 
     public static Tuple<XAction, Int64> DL_ABMinimax(XBoard state, int depth, bool playerIsWhite)
     {
-        Int64 alpha = Int64.MinValue;
-        Int64 beta = Int64.MaxValue;
+        Int64 alpha = LoseEval;
+        Int64 beta = WinEval;
         var children = LegalMoves(state);
         var bestChild = children[0];
         state.Apply(bestChild);
         var bestVal = DL_ABMin(state, depth-1, playerIsWhite, alpha, beta);
         Console.Write("(" + ChessEngine.tileToFR(bestChild.srcTile) + "-" + ChessEngine.tileToFR(bestChild.destTile) + " " + bestVal + " " + state.whiteCheck + " " + state.blackCheck + ")\t");
         state.Undo();
-        if (bestVal > alpha)
-        {
-            alpha = bestVal;
-            if (bestVal >= beta)
-            {
-                return Tuple.Create(bestChild, bestVal);
-            }
-        }
+        alpha = bestVal;
         foreach(var child in children.Skip(1))
         {
             state.Apply(child);
@@ -222,14 +218,7 @@ Attackers who have multiple targets and threaten king
             {
                 bestChild = child;
                 bestVal = val;
-                if (bestVal > alpha)
-                {
-                    alpha = bestVal;
-                    if (bestVal >= beta)
-                    {
-                        return Tuple.Create(bestChild, bestVal);
-                    }
-                }
+                alpha = bestVal;
             }
         }
         Console.WriteLine("");
