@@ -26,23 +26,23 @@ Attackers who have multiple targets and threaten king
 
     /* Material */
     static readonly byte QueenMaterial  = 180;
-    static readonly byte RookMaterial   = 100;
+    static readonly byte RookMaterial   = 80;
     static readonly byte BishopMaterial = 70;
     static readonly byte KnightMaterial = 60;
     static readonly byte PawnMaterial   = 12;
 
     /* Static Positional/Material Value */
     static readonly uint QueenExistenceBonus = 500;
-    static readonly byte CastlePotentialBonus = 40;
-    static readonly byte BishopPairBonus = 20;
-    static readonly byte CastleBonus = 125;
+    static readonly byte CastlePotentialBonus = 50;
+    static readonly byte BishopPairBonus = 30;
+    static readonly byte CastleBonus = 0;
 
     static readonly byte[] PawnSquareTable = {
         0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
         50, 50, 50, 50, 50, 50, 50, 50,
         10, 10, 20, 30, 30, 20, 10, 10,
         8 , 8 , 15, 25, 25, 15, 8 , 8 ,
-        0 , 8 , 12, 20, 20, 12, 8 , 0 ,
+        8 , 10, 12, 20, 20, 12, 10, 8 ,
         8 , 8 , 10, 18, 18, 10, 8 , 8 ,
         0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
         0 , 0 , 0 , 0 , 0 , 0 , 0 , 0
@@ -56,7 +56,7 @@ Attackers who have multiple targets and threaten king
         20, 20, 20, 20, 20, 20, 20, 20,
         20, 20, 20, 20, 20, 20, 20, 20,
         20, 20, 20, 20, 20, 20, 20, 20,
-        20, 0 , 20, 30, 20, 30, 0 , 20
+        20, 0 , 20, 35, 20, 35, 0 , 20
     };
 
     static readonly byte[] KingSquareTable = {
