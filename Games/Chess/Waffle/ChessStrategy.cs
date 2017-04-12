@@ -20,8 +20,8 @@ Attackers who have multiple targets and threaten king
     private static Int64 LoseEval = -WinEval;
 
     private static Random rand = new Random();
-    static readonly byte materialWeight = 17;
-    static readonly byte positionWeight = 3;
+    static readonly byte materialWeight = 19;
+    static readonly byte positionWeight = 2;
 
     /* Material */
     static readonly byte QueenMaterial  = 180;
@@ -35,6 +35,7 @@ Attackers who have multiple targets and threaten king
     static readonly byte CastlePotentialBonus = 25;
     static readonly byte BishopPairBonus = 30;
     static readonly byte CastleBonus = 65;
+    static readonly byte CastleTurnCutOff = 40;
 
     static readonly byte[] PawnSquareTable = {
         0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
@@ -113,7 +114,7 @@ Attackers who have multiple targets and threaten king
     static readonly byte BishopAttackKingValue   = 55;
 
     static readonly byte QueenAttackPawnValue   = 15;
-    static readonly byte QueenAttackRookValue   = 45;
+    static readonly byte QueenAttackRookValue   = 55;
     static readonly byte QueenAttackKnightValue = 30;
     static readonly byte QueenAttackBishopValue = 10;
     static readonly byte QueenAttackQueenValue  = 25;
@@ -275,6 +276,11 @@ Attackers who have multiple targets and threaten king
             return 0;
         }
 
+        if (state.whiteCheck || state.blackCheck)
+        {
+            depth += 1;
+        }
+
         if (depth == 0)
         {
             return Heuristic(state, maxWhite);
@@ -363,6 +369,11 @@ Attackers who have multiple targets and threaten king
             return 0;
         }
 
+        if (state.whiteCheck || state.blackCheck)
+        {
+            depth += 1;
+        }
+
         if (depth == 0)
         {
             return Heuristic(state, maxWhite);
@@ -435,7 +446,7 @@ Attackers who have multiple targets and threaten king
     public static Int64 Heuristic(XBoard state, bool playerIsWhite)
     {
         byte turnWhitePenalty = (byte)((state.turnIsWhite) ? turnSafeMult : turnThreatMult);
-        byte turnBlackPenalty = (byte)((state.turnIsWhite) ? turnSafeMult : turnSafeMult);
+        byte turnBlackPenalty = (byte)((state.turnIsWhite) ? turnThreatMult : turnSafeMult);
         UInt64 pieces;
         UInt64 piece;
 
@@ -478,9 +489,12 @@ Attackers who have multiple targets and threaten king
             {
                 whiteMaterial += CastlePotentialBonus;
             }
-            if (state.whiteKing == whiteKSDest || state.whiteKing == whiteQSDest)
+            if (!state.whiteCastleKS && !state.whiteCastleQS && state.stateHistory.Count() < CastleTurnCutOff)
             {
-                whiteMaterial += CastleBonus;
+                if (state.whiteKing == whiteKSDest || state.whiteKing == whiteQSDest || ((state.whiteRooks & (whiteKSRookDest | whiteQSRookDest)) != 0))
+                {
+                    whiteMaterial += CastleBonus;
+                }
             }
             if (BitOps.CountBits(state.whiteBishops) >= 2) {
                 whiteMaterial += BishopPairBonus;
@@ -522,9 +536,12 @@ Attackers who have multiple targets and threaten king
             {
                 blackMaterial += CastlePotentialBonus;
             }
-            if (state.blackKing == blackKSDest || state.blackKing == blackQSDest)
+            if (!state.blackCastleKS && !state.blackCastleQS && state.stateHistory.Count() < CastleTurnCutOff)
             {
-                blackMaterial += CastleBonus;
+                if (state.blackKing == blackKSDest || state.blackKing == blackQSDest || ((state.blackRooks & (blackKSRookDest | blackQSRookDest)) != 0))
+                {
+                    blackMaterial += CastleBonus;
+                }
             }
             if (BitOps.CountBits(state.blackBishops) >= 2) {
                 blackMaterial += BishopPairBonus;
