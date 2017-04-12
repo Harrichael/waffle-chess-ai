@@ -155,9 +155,13 @@ public class XBoard
     public void Apply(XAction action)
     {
         this.actionHistory.Push(action);
+        byte castleSettings = (byte)( (Convert.ToByte(this.whiteCastleKS)) |
+                                      (Convert.ToByte(this.whiteCastleQS) << 1) |
+                                      (Convert.ToByte(this.blackCastleKS) << 2) | 
+                                      (Convert.ToByte(this.blackCastleQS) << 3) );
         this.actionUndoHistory.Push(new XActionUndoData(
             this.zobristHash,
-            (byte)( (Convert.ToByte(this.whiteCastleKS)) & (Convert.ToByte(this.whiteCastleQS) << 1) & (Convert.ToByte(this.blackCastleKS) << 2) & (Convert.ToByte(this.blackCastleQS) << 3) ),
+            castleSettings,
             this.halfMoveClock,
             this.whiteCheck,
             this.blackCheck
@@ -250,6 +254,8 @@ public class XBoard
                 break;
                 case PieceType.Castle:
                     this.zobristHash ^= Zobrist.whiteKing[whiteKingStart];
+                    this.whiteCastleKS = false;
+                    this.whiteCastleQS = false;
                     if ( (action.destTile & whiteKSSpace) != 0 )
                     {
                         this.whiteKing = whiteKSDest;
@@ -258,7 +264,6 @@ public class XBoard
                         this.zobristHash ^= Zobrist.whiteKing[whiteKSDest];
                         this.zobristHash ^= Zobrist.whiteRook[whiteKSRookStart];
                         this.zobristHash ^= Zobrist.whiteRook[whiteKSRookDest];
-                        this.whiteCastleKS = false;
                     } else {
                         this.whiteKing = whiteQSDest;
                         this.whiteRooks = (this.whiteRooks & ~whiteQSRookStart) | whiteQSRookDest;
@@ -266,7 +271,6 @@ public class XBoard
                         this.zobristHash ^= Zobrist.whiteKing[whiteQSDest];
                         this.zobristHash ^= Zobrist.whiteRook[whiteQSRookStart];
                         this.zobristHash ^= Zobrist.whiteRook[whiteQSRookDest];
-                        this.whiteCastleQS = false;
                     }
                 break;
             }
@@ -390,6 +394,8 @@ public class XBoard
                 break;
                 case PieceType.Castle:
                     this.zobristHash ^= Zobrist.blackKing[blackKingStart];
+                    this.blackCastleKS = false;
+                    this.blackCastleQS = false;
                     if ( (action.destTile & blackKSSpace) != 0 )
                     {
                         this.blackKing = blackKSDest;
@@ -398,7 +404,6 @@ public class XBoard
                         this.zobristHash ^= Zobrist.blackKing[blackKSDest];
                         this.zobristHash ^= Zobrist.blackRook[blackKSRookStart];
                         this.zobristHash ^= Zobrist.blackRook[blackKSRookDest];
-                        this.blackCastleKS = false;
                     } else {
                         this.blackKing = blackQSDest;
                         this.blackRooks = (this.blackRooks & ~blackQSRookStart) | blackQSRookDest;
@@ -406,7 +411,6 @@ public class XBoard
                         this.zobristHash ^= Zobrist.blackKing[blackQSDest];
                         this.zobristHash ^= Zobrist.blackRook[blackQSRookStart];
                         this.zobristHash ^= Zobrist.blackRook[blackQSRookDest];
-                        this.blackCastleQS = false;
                     }
                 break;
             }

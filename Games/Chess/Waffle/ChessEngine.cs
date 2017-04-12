@@ -78,10 +78,10 @@ public class ChessEngine
         } // End foreach
 
         this.board.turnIsWhite = fenFields[1] == "w";
-        this.board.whiteCastleKS = fenFields[2].Contains("K");
-        this.board.whiteCastleQS = fenFields[2].Contains("Q");
-        this.board.blackCastleKS = fenFields[2].Contains("k");
-        this.board.blackCastleQS = fenFields[2].Contains("q");
+        this.board.whiteCastleKS = fenFields[2].Contains('K');
+        this.board.whiteCastleQS = fenFields[2].Contains('Q');
+        this.board.blackCastleKS = fenFields[2].Contains('k');
+        this.board.blackCastleQS = fenFields[2].Contains('q');
         this.board.enPassTile = frToTile(fenFields[3]);
         this.board.halfMoveClock = byte.Parse(fenFields[4]);
         this.board.updatePieces();
@@ -179,12 +179,20 @@ public class ChessEngine
         Console.Write("Num Legal Moves: ");
         var moves = ChessRules.LegalMoves(this.board);
         Console.WriteLine(moves.Count());
+        Console.WriteLine(this.board.whiteCheck + "\t" + this.board.blackCheck + "\t" + this.board.whiteCastleKS + "\t" + this.board.open + "\t" + ChessRules.whiteKSSpace + "\t" + (this.board.open & ChessRules.whiteKSSpace));
+        Console.Write("50 Move Counter: ");
+        Console.WriteLine(this.board.halfMoveClock);
 
         var action = ChessStrategy.TLID_ABMinimax(this.board, 250, this.aiIsWhite);
+
         var zobrist = this.board.zobristHash;
         this.board.Apply(action);
         Console.Write("\nZobrist state counter: ");
         Console.WriteLine(this.board.stateHistory[zobrist]);
+        Console.WriteLine("Applying move: " + tileToFR(action.srcTile) +"   " +  tileToFR(action.destTile) + "   " +  action.promotionType.ToString());
+        Console.Write("Num Opp Legal Moves: ");
+        moves = ChessRules.LegalMoves(this.board);
+        Console.WriteLine(moves.Count());
         Console.Write("50 Move Counter: ");
         Console.WriteLine(this.board.halfMoveClock);
         return Tuple.Create( tileToFR(action.srcTile),

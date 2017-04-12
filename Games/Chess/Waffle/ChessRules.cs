@@ -461,7 +461,7 @@ public static class ChessRules
         threats |= (attackers & checkThreats);
 
         // Check Knights
-        if (state.turnIsWhite)
+        if (whiteAttackers)
         {
             attackers = state.whiteKnights;
         } else {
