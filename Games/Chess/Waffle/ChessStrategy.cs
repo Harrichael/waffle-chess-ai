@@ -12,7 +12,6 @@ public static class ChessStrategy
 /*
 TODO
 
-Fix Castling
 Symmetrical Attacks and turns
 King Attacks to threatened squares
 Attackers who have multiple targets and threaten king
@@ -21,8 +20,8 @@ Attackers who have multiple targets and threaten king
     private static Int64 LoseEval = -WinEval;
 
     private static Random rand = new Random();
-    static readonly byte materialWeight = 15;
-    static readonly byte positionWeight = 2;
+    static readonly byte materialWeight = 17;
+    static readonly byte positionWeight = 3;
 
     /* Material */
     static readonly byte QueenMaterial  = 180;
@@ -33,17 +32,17 @@ Attackers who have multiple targets and threaten king
 
     /* Static Positional/Material Value */
     static readonly uint QueenExistenceBonus = 500;
-    static readonly byte CastlePotentialBonus = 50;
+    static readonly byte CastlePotentialBonus = 25;
     static readonly byte BishopPairBonus = 30;
-    static readonly byte CastleBonus = 0;
+    static readonly byte CastleBonus = 65;
 
     static readonly byte[] PawnSquareTable = {
         0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
         50, 50, 50, 50, 50, 50, 50, 50,
         10, 10, 20, 30, 30, 20, 10, 10,
-        8 , 8 , 15, 25, 25, 15, 8 , 8 ,
-        9 , 11, 12, 20, 20, 12, 11, 9 ,
-        8 , 10, 10, 18, 18, 10, 10, 8 ,
+        10, 10, 17, 27, 27, 17, 10, 10,
+        12, 13, 15, 26, 26, 15, 14, 12,
+        8 , 10, 10, 17, 17, 10, 10, 8 ,
         0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
         0 , 0 , 0 , 0 , 0 , 0 , 0 , 0
     };
@@ -77,29 +76,29 @@ Attackers who have multiple targets and threaten king
     static readonly byte turnThreatMult = 6;
 
     /* Mobility */
-    static readonly byte KingOpenValue   = 2;
+    static readonly byte KingOpenValue   = 1;
     static readonly byte QueenOpenValue  = 7;
-    static readonly byte RookOpenValue   = 4;
+    static readonly byte RookOpenValue   = 6;
     static readonly byte BishopOpenValue = 13;
     static readonly byte KnightOpenValue = 6;
     static readonly byte PawnOpenValue   = 5;
 
     /* Attack */
-    static readonly byte PawnAttackPawnValue   = 50;
+    static readonly byte PawnAttackPawnValue   = 70;
     static readonly byte PawnAttackRookValue   = 100;
     static readonly byte PawnAttackKnightValue = 90;
     static readonly byte PawnAttackBishopValue = 110;
-    static readonly byte PawnAttackQueenValue  = 135;
+    static readonly byte PawnAttackQueenValue  = 140;
     static readonly byte PawnAttackKingValue   = 30;
 
     static readonly byte RookAttackPawnValue   = 30;
     static readonly byte RookAttackRookValue   = 10;
     static readonly byte RookAttackKnightValue = 50;
-    static readonly byte RookAttackBishopValue = 50;
-    static readonly byte RookAttackQueenValue  = 35;
+    static readonly byte RookAttackBishopValue = 35;
+    static readonly byte RookAttackQueenValue  = 50;
     static readonly byte RookAttackKingValue   = 70;
 
-    static readonly byte KnightAttackPawnValue   = 15;
+    static readonly byte KnightAttackPawnValue   = 25;
     static readonly byte KnightAttackRookValue   = 60;
     static readonly byte KnightAttackKnightValue = 20;
     static readonly byte KnightAttackBishopValue = 60;
@@ -114,8 +113,8 @@ Attackers who have multiple targets and threaten king
     static readonly byte BishopAttackKingValue   = 55;
 
     static readonly byte QueenAttackPawnValue   = 15;
-    static readonly byte QueenAttackRookValue   = 10;
-    static readonly byte QueenAttackKnightValue = 60;
+    static readonly byte QueenAttackRookValue   = 45;
+    static readonly byte QueenAttackKnightValue = 30;
     static readonly byte QueenAttackBishopValue = 10;
     static readonly byte QueenAttackQueenValue  = 25;
     static readonly byte QueenAttackKingValue   = 80;
@@ -148,10 +147,10 @@ Attackers who have multiple targets and threaten king
     static readonly byte KnightDefendKingValue   = 70;
 
     static readonly byte BishopDefendPawnValue   = 20;
-    static readonly byte BishopDefendRookValue   = 60;
-    static readonly byte BishopDefendKnightValue = 60;
-    static readonly byte BishopDefendBishopValue = 40;
-    static readonly byte BishopDefendQueenValue  = 50;
+    static readonly byte BishopDefendRookValue   = 45;
+    static readonly byte BishopDefendKnightValue = 45;
+    static readonly byte BishopDefendBishopValue = 30;
+    static readonly byte BishopDefendQueenValue  = 30;
     static readonly byte BishopDefendKingValue   = 10;
 
     static readonly byte QueenDefendPawnValue   = 10;
@@ -161,8 +160,8 @@ Attackers who have multiple targets and threaten king
     static readonly byte QueenDefendQueenValue  = 80;
     static readonly byte QueenDefendKingValue   = 50;
 
-    static readonly byte KingDefendPawnValue   = 30;
-    static readonly byte KingDefendRookValue   = 50;
+    static readonly byte KingDefendPawnValue   = 40;
+    static readonly byte KingDefendRookValue   = 25;
     static readonly byte KingDefendKnightValue = 10;
     static readonly byte KingDefendBishopValue = 10;
     static readonly byte KingDefendQueenValue  = 10;
@@ -473,21 +472,15 @@ Attackers who have multiple targets and threaten king
             }
             if (state.whiteCastleKS)
             {
-                if (state.whiteKing != whiteKSDest)
-                {
-                    whiteMaterial += CastlePotentialBonus;
-                } else {
-                    whiteMaterial += CastleBonus;
-                }
+                whiteMaterial += CastlePotentialBonus;
             }
             if (state.whiteCastleQS)
             {
-                if (state.whiteKing != whiteQSDest)
-                {
-                    whiteMaterial += CastlePotentialBonus;
-                } else {
-                    whiteMaterial += CastleBonus;
-                }
+                whiteMaterial += CastlePotentialBonus;
+            }
+            if (state.whiteKing == whiteKSDest || state.whiteKing == whiteQSDest)
+            {
+                whiteMaterial += CastleBonus;
             }
             if (BitOps.CountBits(state.whiteBishops) >= 2) {
                 whiteMaterial += BishopPairBonus;
@@ -523,21 +516,15 @@ Attackers who have multiple targets and threaten king
             }
             if (state.blackCastleKS)
             {
-                if (state.blackKing != blackKSDest)
-                {
-                    blackMaterial += CastlePotentialBonus;
-                } else {
-                    blackMaterial += CastleBonus;
-                }
+                blackMaterial += CastlePotentialBonus;
             }
             if (state.blackCastleQS)
             {
-                if (state.blackKing != blackQSDest)
-                {
-                    blackMaterial += CastlePotentialBonus;
-                } else {
-                    blackMaterial += CastleBonus;
-                }
+                blackMaterial += CastlePotentialBonus;
+            }
+            if (state.blackKing == blackKSDest || state.blackKing == blackQSDest)
+            {
+                blackMaterial += CastleBonus;
             }
             if (BitOps.CountBits(state.blackBishops) >= 2) {
                 blackMaterial += BishopPairBonus;
