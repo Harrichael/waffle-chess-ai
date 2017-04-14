@@ -276,9 +276,9 @@ Attackers who have multiple targets and threaten king
             return 0;
         }
 
-        if (state.whiteCheck || state.blackCheck)
+        if (depth == 0 && (state.whiteCheck || state.blackCheck))
         {
-            depth += 1;
+            depth = 1;
         }
 
         if (depth == 0)
@@ -369,9 +369,9 @@ Attackers who have multiple targets and threaten king
             return 0;
         }
 
-        if (state.whiteCheck || state.blackCheck)
+        if (depth == 0 && (state.whiteCheck || state.blackCheck))
         {
-            depth += 1;
+            depth = 1;
         }
 
         if (depth == 0)
