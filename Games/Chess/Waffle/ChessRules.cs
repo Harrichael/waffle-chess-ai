@@ -46,18 +46,22 @@ public static class ChessRules
     public static readonly UInt64 whiteKSRookStart = 0x0000000000000001;
     public static readonly UInt64 whiteQSRookStart = 0x0000000000000080;
     public static readonly UInt64 whiteKSSpace     = 0x0000000000000006;
+    public static readonly UInt64 whiteKSThrough   = 0x0000000000000004;
     public static readonly UInt64 whiteKSDest      = 0x0000000000000002;
     public static readonly UInt64 whiteKSRookDest  = 0x0000000000000004;
     public static readonly UInt64 whiteQSSpace     = 0x0000000000000070;
+    public static readonly UInt64 whiteQSThrough   = 0x0000000000000010;
     public static readonly UInt64 whiteQSDest      = 0x0000000000000020;
     public static readonly UInt64 whiteQSRookDest  = 0x0000000000000010;
     public static readonly UInt64 blackKingStart   = 0x0800000000000000;
     public static readonly UInt64 blackKSRookStart = 0x0100000000000000;
     public static readonly UInt64 blackQSRookStart = 0x8000000000000000;
     public static readonly UInt64 blackKSSpace     = 0x0600000000000000;
+    public static readonly UInt64 blackKSThrough   = 0x0400000000000000;
     public static readonly UInt64 blackKSDest      = 0x0200000000000000;
     public static readonly UInt64 blackKSRookDest  = 0x0400000000000000;
     public static readonly UInt64 blackQSSpace     = 0x7000000000000000;
+    public static readonly UInt64 blackQSThrough   = 0x1000000000000000;
     public static readonly UInt64 blackQSDest      = 0x2000000000000000;
     public static readonly UInt64 blackQSRookDest  = 0x1000000000000000;
 
@@ -247,11 +251,11 @@ public static class ChessRules
             {
                 if (!state.whiteCheck)
                 {
-                    if (state.whiteCastleKS && ((state.open & whiteKSSpace) == whiteKSSpace))
+                    if (state.whiteCastleKS && ((state.open & whiteKSSpace) == whiteKSSpace) && (Threats(state, whiteKSThrough, false) == 0))
                     {
                         neighbors.Add( new XAction(state.whiteKing, whiteKSDest, PieceType.Castle) );
                     }
-                    if (state.whiteCastleQS && ((state.open & whiteQSSpace) == whiteQSSpace))
+                    if (state.whiteCastleQS && ((state.open & whiteQSSpace) == whiteQSSpace) && (Threats(state, whiteQSThrough, false) == 0))
                     {
                         neighbors.Add( new XAction(state.whiteKing, whiteQSDest, PieceType.Castle) );
                     }
@@ -259,11 +263,11 @@ public static class ChessRules
             } else {
                 if (!state.blackCheck)
                 {
-                    if (state.blackCastleKS && ((state.open & blackKSSpace) == blackKSSpace))
+                    if (state.blackCastleKS && ((state.open & blackKSSpace) == blackKSSpace) && (Threats(state, blackKSThrough, true) == 0))
                     {
                         neighbors.Add( new XAction(state.blackKing, blackKSDest, PieceType.Castle) );
                     }
-                    if (state.blackCastleQS && ((state.open & blackQSSpace) == blackQSSpace))
+                    if (state.blackCastleQS && ((state.open & blackQSSpace) == blackQSSpace) && (Threats(state, blackQSThrough, true) == 0))
                     {
                         neighbors.Add( new XAction(state.blackKing, blackQSDest, PieceType.Castle) );
                     }
@@ -439,15 +443,13 @@ public static class ChessRules
         return neighbors.Where(n => !invalidNeighbors.Contains(n)).OrderBy(n => n.attackType).ThenBy(n => rand.Next()).ToList();
     } // End LegalMoves
 
-    public static UInt64 Threats(XBoard state, UInt64 tile)
+    public static UInt64 Threats(XBoard state, UInt64 tile, bool whiteAttackers)
     {
         UInt64 threats = 0;
         UInt64 threat;
         UInt64 validMove;
         UInt64 checkThreats;
         UInt64 attackers;
-
-        bool whiteAttackers = (tile & state.blackPieces) != 0;
 
         // Check Pawns
         if (whiteAttackers)

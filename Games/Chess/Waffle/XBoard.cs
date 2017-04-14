@@ -458,8 +458,8 @@ public class XBoard
         this.pieces = this.whitePieces | this.blackPieces;
         this.open = ~this.pieces;
         this.turnIsWhite = !this.turnIsWhite;
-        this.whiteCheck = Threats(this, this.whiteKing) != 0;
-        this.blackCheck = Threats(this, this.blackKing) != 0;
+        this.whiteCheck = Threats(this, this.whiteKing, false) != 0;
+        this.blackCheck = Threats(this, this.blackKing, true) != 0;
         this.zobristHash ^= Zobrist.turnIsWhite;
         if (this.stateHistory.ContainsKey(lastState))
         {
