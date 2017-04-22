@@ -128,30 +128,6 @@ public class XBoard
         return (XBoard)this.MemberwiseClone();
     }
 
-    public bool Equals(XBoard obj)
-    {
-        return ( (this.whitePawns    == obj.whitePawns)    &&
-                 (this.whiteRooks    == obj.whiteRooks)    &&
-                 (this.whiteKnights  == obj.whiteKnights)  &&
-                 (this.whiteBishops  == obj.whiteBishops)  &&
-                 (this.whiteQueens   == obj.whiteQueens)   &&
-                 (this.whiteKing     == obj.whiteKing)     &&
-                 (this.blackPawns    == obj.blackPawns)    &&
-                 (this.blackRooks    == obj.blackRooks)    &&
-                 (this.blackKnights  == obj.blackKnights)  &&
-                 (this.blackBishops  == obj.blackBishops)  &&
-                 (this.blackQueens   == obj.blackQueens)   &&
-                 (this.blackKing     == obj.blackKing)     &&
-                 (this.whitePieces   == obj.whitePieces)   &&
-                 (this.blackPieces   == obj.blackPieces)   &&
-                 (this.pieces        == obj.pieces)        &&
-                 (this.open          == obj.open)          &&
-                 (this.turnIsWhite   == obj.turnIsWhite)   &&
-                 (this.whiteCheck    == obj.whiteCheck)    &&
-                 (this.blackCheck    == obj.blackCheck)
-        );
-    }
-
     public void Apply(XAction action)
     {
         this.actionHistory.Push(action);
