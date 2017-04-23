@@ -32,10 +32,10 @@ Attackers who have multiple targets and threaten king
 
     /* Static Positional/Material Value */
     static readonly uint QueenExistenceBonus = 500;
-    static readonly byte CastlePotentialBonus = 25;
-    static readonly byte BishopPairBonus = 30;
-    static readonly byte CastleBonus = 65;
-    static readonly byte CastleTurnCutOff = 40;
+    static readonly byte CastlePotentialBonus = 20;
+    static readonly byte BishopPairBonus = 40;
+    static readonly byte CastleBonus = 50;
+    static readonly byte CastleTurnCutOff = 80;
 
     static readonly byte[] PawnSquareTable = {
         0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
