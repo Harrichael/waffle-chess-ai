@@ -20,22 +20,25 @@ Attackers who have multiple targets and threaten king
     private static Int64 LoseEval = -WinEval;
 
     private static Random rand = new Random();
-    static readonly byte materialWeight = 19;
-    static readonly byte positionWeight = 2;
+    static readonly byte potentialWeight = 2;
+    static readonly byte materialWeight = 5;
+    static readonly byte staticWeight = 3;
+    static readonly byte positionWeight = 1;
 
     /* Material */
     static readonly byte QueenMaterial  = 180;
-    static readonly byte RookMaterial   = 80;
+    static readonly byte RookMaterial   = 85;
     static readonly byte BishopMaterial = 70;
     static readonly byte KnightMaterial = 60;
     static readonly byte PawnMaterial   = 12;
+    static readonly byte BishopPairBonus = 40;
 
-    /* Static Positional/Material Value */
+    /* Static */
     static readonly uint QueenExistenceBonus = 500;
     static readonly byte CastlePotentialBonus = 20;
-    static readonly byte BishopPairBonus = 40;
     static readonly byte CastleBonus = 50;
     static readonly byte CastleTurnCutOff = 80;
+    static readonly byte PawnDifferenceBonus = 15;
 
     static readonly byte[] PawnSquareTable = {
         0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
@@ -452,101 +455,112 @@ Attackers who have multiple targets and threaten king
 
         // Potential
         UInt64 whiteMaterial = 0;
+        UInt64 whiteStatic = 0;
         UInt64 blackMaterial = 0;
-        { // White Material
-            pieces = state.whitePawns;
-            while (pieces != 0)
-            {
-                piece = BitOps.MSB(pieces);
-                pieces -= piece;
-
-                whiteMaterial += PawnSquareTable[64 - BitOps.bbIndex(piece)];
-            }
-            pieces = state.whiteRooks;
-            while (pieces != 0)
-            {
-                piece = BitOps.MSB(pieces);
-                pieces -= piece;
-
-                whiteMaterial += RookSquareTable[64 - BitOps.bbIndex(piece)];
-            }
-            whiteMaterial += KingSquareTable[64 - BitOps.bbIndex(state.whiteKing)];
-
-            whiteMaterial += PawnMaterial * BitOps.CountBits(state.whitePawns);
-            whiteMaterial += RookMaterial * BitOps.CountBits(state.whiteRooks);
-            whiteMaterial += KnightMaterial * BitOps.CountBits(state.whiteKnights);
-            whiteMaterial += BishopMaterial * BitOps.CountBits(state.whiteBishops);
-            whiteMaterial += QueenMaterial * BitOps.CountBits(state.whiteQueens);
-            if (state.whiteQueens != 0)
-            {
-                whiteMaterial += QueenExistenceBonus;
-            }
-            if (state.whiteCastleKS)
-            {
-                whiteMaterial += CastlePotentialBonus;
-            }
-            if (state.whiteCastleQS)
-            {
-                whiteMaterial += CastlePotentialBonus;
-            }
-            if (!state.whiteCastleKS && !state.whiteCastleQS && state.stateHistory.Count() < CastleTurnCutOff)
-            {
-                if (state.whiteKing == whiteKSDest || state.whiteKing == whiteQSDest || ((state.whiteRooks & (whiteKSRookDest | whiteQSRookDest)) != 0))
+        UInt64 blackStatic = 0;
+        {
+            UInt64 whiteNumPawns = BitOps.CountBits(state.whitePawns);
+            UInt64 blackNumPawns = BitOps.CountBits(state.blackPawns);
+            whiteStatic += PawnDifferenceBonus * (whiteNumPawns - blackNumPawns);
+            blackStatic += PawnDifferenceBonus * (blackNumPawns - whiteNumPawns);
+            { // White Potential
+                pieces = state.whitePawns;
+                while (pieces != 0)
                 {
-                    whiteMaterial += CastleBonus;
+                    piece = BitOps.MSB(pieces);
+                    pieces -= piece;
+    
+                    whiteStatic += PawnSquareTable[64 - BitOps.bbIndex(piece)];
                 }
-            }
-            if (BitOps.CountBits(state.whiteBishops) >= 2) {
-                whiteMaterial += BishopPairBonus;
-            }
-        } // End White Material
-        { // Black Material
-            pieces = state.blackPawns;
-            while (pieces != 0)
-            {
-                piece = BitOps.MSB(pieces);
-                pieces -= piece;
-
-                blackMaterial += PawnSquareTable[BitOps.bbIndex(piece) - 1];
-            }
-            pieces = state.blackRooks;
-            while (pieces != 0)
-            {
-                piece = BitOps.MSB(pieces);
-                pieces -= piece;
-
-                blackMaterial += RookSquareTable[BitOps.bbIndex(piece) - 1];
-            }
-            blackMaterial += KingSquareTable[BitOps.bbIndex(state.blackKing) - 1];
-
-            blackMaterial += PawnMaterial * BitOps.CountBits(state.blackPawns);
-            blackMaterial += RookMaterial * BitOps.CountBits(state.blackRooks);
-            blackMaterial += KnightMaterial * BitOps.CountBits(state.blackKnights);
-            blackMaterial += BishopMaterial * BitOps.CountBits(state.blackBishops);
-            blackMaterial += QueenMaterial * BitOps.CountBits(state.blackQueens);
-            if (state.blackQueens != 0)
-            {
-                blackMaterial += QueenExistenceBonus;
-            }
-            if (state.blackCastleKS)
-            {
-                blackMaterial += CastlePotentialBonus;
-            }
-            if (state.blackCastleQS)
-            {
-                blackMaterial += CastlePotentialBonus;
-            }
-            if (!state.blackCastleKS && !state.blackCastleQS && state.stateHistory.Count() < CastleTurnCutOff)
-            {
-                if (state.blackKing == blackKSDest || state.blackKing == blackQSDest || ((state.blackRooks & (blackKSRookDest | blackQSRookDest)) != 0))
+                pieces = state.whiteRooks;
+                while (pieces != 0)
                 {
-                    blackMaterial += CastleBonus;
+                    piece = BitOps.MSB(pieces);
+                    pieces -= piece;
+    
+                    whiteStatic += RookSquareTable[64 - BitOps.bbIndex(piece)];
                 }
-            }
-            if (BitOps.CountBits(state.blackBishops) >= 2) {
-                blackMaterial += BishopPairBonus;
-            }
-        } // End Black Material
+                whiteStatic += KingSquareTable[64 - BitOps.bbIndex(state.whiteKing)];
+    
+                whiteMaterial += PawnMaterial * whiteNumPawns;
+                whiteMaterial += RookMaterial * BitOps.CountBits(state.whiteRooks);
+                whiteMaterial += KnightMaterial * BitOps.CountBits(state.whiteKnights);
+                whiteMaterial += BishopMaterial * BitOps.CountBits(state.whiteBishops);
+                whiteMaterial += QueenMaterial * BitOps.CountBits(state.whiteQueens);
+                if (state.whiteQueens != 0)
+                {
+                    whiteStatic += QueenExistenceBonus;
+                }
+                if (state.whiteCastleKS)
+                {
+                    whiteStatic += CastlePotentialBonus;
+                }
+                if (state.whiteCastleQS)
+                {
+                    whiteStatic += CastlePotentialBonus;
+                }
+                if (!state.whiteCastleKS && !state.whiteCastleQS && state.stateHistory.Count() < CastleTurnCutOff)
+                {
+                    if (state.whiteKing == whiteKSDest || state.whiteKing == whiteQSDest || ((state.whiteRooks & (whiteKSRookDest | whiteQSRookDest)) != 0))
+                    {
+                        whiteStatic += CastleBonus;
+                    }
+                }
+                if (BitOps.CountBits(state.whiteBishops) >= 2) {
+                    whiteMaterial += BishopPairBonus;
+                }
+            } // End White Potential
+            { // Black Potential
+                pieces = state.blackPawns;
+                while (pieces != 0)
+                {
+                    piece = BitOps.MSB(pieces);
+                    pieces -= piece;
+    
+                    blackStatic += PawnSquareTable[BitOps.bbIndex(piece) - 1];
+                }
+                pieces = state.blackRooks;
+                while (pieces != 0)
+                {
+                    piece = BitOps.MSB(pieces);
+                    pieces -= piece;
+    
+                    blackStatic += RookSquareTable[BitOps.bbIndex(piece) - 1];
+                }
+                blackStatic += KingSquareTable[BitOps.bbIndex(state.blackKing) - 1];
+    
+                blackMaterial += PawnMaterial * blackNumPawns;
+                blackMaterial += RookMaterial * BitOps.CountBits(state.blackRooks);
+                blackMaterial += KnightMaterial * BitOps.CountBits(state.blackKnights);
+                blackMaterial += BishopMaterial * BitOps.CountBits(state.blackBishops);
+                blackMaterial += QueenMaterial * BitOps.CountBits(state.blackQueens);
+                if (state.blackQueens != 0)
+                {
+                    blackStatic += QueenExistenceBonus;
+                }
+                if (state.blackCastleKS)
+                {
+                    blackStatic += CastlePotentialBonus;
+                }
+                if (state.blackCastleQS)
+                {
+                    blackStatic += CastlePotentialBonus;
+                }
+                if (!state.blackCastleKS && !state.blackCastleQS && state.stateHistory.Count() < CastleTurnCutOff)
+                {
+                    if (state.blackKing == blackKSDest || state.blackKing == blackQSDest || ((state.blackRooks & (blackKSRookDest | blackQSRookDest)) != 0))
+                    {
+                        blackStatic += CastleBonus;
+                    }
+                }
+                if (BitOps.CountBits(state.blackBishops) >= 2) {
+                    blackMaterial += BishopPairBonus;
+                }
+            } // End Black Potential
+        }
+
+        UInt64 whitePotential = materialWeight * whiteMaterial + staticWeight * whiteStatic;
+        UInt64 blackPotential = materialWeight * blackMaterial + staticWeight * blackStatic;
 
         // Position
         UInt64 whitePosition = 0;
@@ -1122,10 +1136,10 @@ Attackers who have multiple targets and threaten king
         
         if (playerIsWhite)
         {
-            return (Int64)(materialWeight*(whiteMaterial - blackMaterial) + positionWeight*(whitePosition - blackPosition));
+            return (Int64)(potentialWeight*(whitePotential - blackPotential) + positionWeight*(whitePosition - blackPosition));
         }
         {
-            return (Int64)(materialWeight*(blackMaterial - whiteMaterial) + positionWeight*(blackPosition - whitePosition));
+            return (Int64)(potentialWeight*(blackPotential - whitePotential) + positionWeight*(blackPosition - whitePosition));
         }
     }
 }
