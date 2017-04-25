@@ -170,6 +170,15 @@ Attackers who have multiple targets and threaten king
     static readonly byte KingDefendBishopValue = 10;
     static readonly byte KingDefendQueenValue  = 10;
 
+    /* Search variables */
+    static Dictionary<XAction, int> historyTable = new Dictionary<XAction, int>();
+    static Dictionary<int, XAction> pvPath = new Dictionary<int, XAction>();
+
+    public static void SetPV(XBoard state, XAction action)
+    {
+        pvPath[state.NumMoves()] = action;
+    }
+
     public static T RandomSelect<T>(List<T> sequence)
     {
         return sequence[rand.Next(sequence.Count())];
@@ -204,7 +213,7 @@ Attackers who have multiple targets and threaten king
     {
         Int64 alpha = LoseEval;
         Int64 beta = WinEval;
-        var children = LegalMoves(state);
+        var children = OrderedLegalMoves(state);
         var bestChild = children[0];
         state.Apply(bestChild);
         var bestVal = DL_ABMin(state, depth-1, playerIsWhite, alpha, beta);
@@ -263,7 +272,7 @@ Attackers who have multiple targets and threaten king
             return Heuristic(state, maxWhite);
         }
 
-        var children = LegalMoves(state);
+        var children = OrderedLegalMoves(state);
         if (children.Count() == 0) // Is terminal
         {
             if (state.whiteCheck || state.blackCheck) // Check Mate
@@ -297,6 +306,11 @@ Attackers who have multiple targets and threaten king
             alpha = maxH;
             if (maxH >= beta)
             {
+                if (!historyTable.ContainsKey(children[0]))
+                {
+                    historyTable[children[0]] = 0;
+                }
+                historyTable[children[0]] += depth*depth;
                 return beta;
             }
         }
@@ -315,6 +329,11 @@ Attackers who have multiple targets and threaten king
                     alpha = maxH;
                     if (maxH >= beta)
                     {
+                        if (!historyTable.ContainsKey(child))
+                        {
+                            historyTable[child] = 0;
+                        }
+                        historyTable[child] += depth*depth;
                         return beta;
                     }
                 }
@@ -356,7 +375,7 @@ Attackers who have multiple targets and threaten king
             return Heuristic(state, maxWhite);
         }
 
-        var children = LegalMoves(state);
+        var children = OrderedLegalMoves(state);
         if (children.Count() == 0) // Is terminal
         {
             if (state.whiteCheck || state.blackCheck) // Check Mate
@@ -390,6 +409,11 @@ Attackers who have multiple targets and threaten king
             beta = minH;
             if (minH < alpha)
             {
+                if (!historyTable.ContainsKey(children[0]))
+                {
+                    historyTable[children[0]] = 0;
+                }
+                historyTable[children[0]] += depth*depth;
                 return alpha;
             }
         }
@@ -408,12 +432,26 @@ Attackers who have multiple targets and threaten king
                     beta = minH;
                     if (minH < alpha)
                     {
+                        if (!historyTable.ContainsKey(child))
+                        {
+                            historyTable[child] = 0;
+                        }
+                        historyTable[child] += depth*depth;
                         return alpha;
                     }
                 }
             }
         }
         return minH;
+    }
+
+    private static List<XAction> OrderedLegalMoves(XBoard state)
+    {
+        return LegalMoves(state)
+            .OrderBy(n => n.attackType)
+            .ThenByDescending(n => historyTable.GetValueOrDefault(n, 0))
+            .ThenBy(n => rand.Next())
+            .ToList();
     }
 
     public static XAction HeuristicSelect(XBoard state, List<XAction> sequence, bool playerIsWhite)

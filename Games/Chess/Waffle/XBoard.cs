@@ -49,6 +49,11 @@ public class XBoard
         this.actionUndoHistory = new Stack<XActionUndoData>();
     }
 
+    public int NumMoves()
+    {
+        return actionHistory.Count();
+    }
+
     public void updatePieces()
     {
         this.whitePieces = ( this.whitePawns   | this.whiteRooks   |
