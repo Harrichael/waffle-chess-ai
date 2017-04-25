@@ -7,6 +7,21 @@ using System.Diagnostics;
 
 using static ChessRules;
 
+public class TTEntry
+{
+    public XAction action;
+    public int depth;
+    public Int64 eval;
+
+    public TTEntry(XAction action, int depth, Int64 eval)
+    {
+        this.action = action;
+        this.depth = depth;
+        this.eval = eval;
+    }
+}
+
+
 public static class ChessStrategy
 {
 /*
@@ -171,7 +186,8 @@ Attackers who have multiple targets and threaten king
     static readonly byte KingDefendQueenValue  = 10;
 
     /* Search variables */
-    static Dictionary<XAction, int> historyTable = new Dictionary<XAction, int>();
+    static Dictionary<XAction, int> HistoryTable = new Dictionary<XAction, int>();
+    static Dictionary<UInt64, TTEntry> TranspositionTable = new Dictionary<UInt64, TTEntry>();
     static Dictionary<int, XAction> pvPath = new Dictionary<int, XAction>();
 
     public static void SetPV(XBoard state, XAction action)
@@ -179,17 +195,34 @@ Attackers who have multiple targets and threaten king
         pvPath[state.NumMoves()] = action;
     }
 
+    public static void UpdateTT(UInt64 zobristHash, XAction action, int depth, Int64 eval)
+    {
+        if (TranspositionTable.ContainsKey(zobristHash))
+        {
+            var entry = TranspositionTable[zobristHash];
+            if (entry.depth < depth)
+            {
+                entry.action = action;
+                entry.eval = eval;
+                entry.depth = depth;
+            }
+        } else {
+            var entry = new TTEntry(action, depth, eval);
+            TranspositionTable[zobristHash] = entry;
+        }
+    }
+
     public static T RandomSelect<T>(List<T> sequence)
     {
         return sequence[rand.Next(sequence.Count())];
     }
 
-    public static XAction TLID_ABMinimax(XBoard state, int limitMS, bool playerIsWhite)
+    public static XAction TLID_ABMinimax(XBoard state, int limitMS, int q_depth, bool playerIsWhite)
     {
         Stopwatch timer = new Stopwatch();
         int depth = 1;
         timer.Start();
-        Tuple<XAction, Int64> action_eval = DL_ABMinimax(state, depth, playerIsWhite);
+        Tuple<XAction, Int64> action_eval = DL_ABMinimax(state, depth, q_depth, playerIsWhite);
         if (action_eval.Item2 == WinEval)
         {
             timer.Stop();
@@ -198,7 +231,7 @@ Attackers who have multiple targets and threaten king
         while (timer.ElapsedMilliseconds < limitMS)
         {
             depth += 1;
-            action_eval = DL_ABMinimax(state, depth, playerIsWhite);
+            action_eval = DL_ABMinimax(state, depth, q_depth, playerIsWhite);
             if (action_eval.Item2 == WinEval)
             {
                 timer.Stop();
@@ -209,21 +242,31 @@ Attackers who have multiple targets and threaten king
         return action_eval.Item1;
     }
 
-    public static Tuple<XAction, Int64> DL_ABMinimax(XBoard state, int depth, bool playerIsWhite)
+    public static Tuple<XAction, Int64> DL_ABMinimax(XBoard state, int depth, int q_depth, bool playerIsWhite)
     {
+        if (TranspositionTable.ContainsKey(state.zobristHash))
+        {
+            var entry = TranspositionTable[state.zobristHash];
+            if (entry.depth >= depth)
+            {
+                Console.WriteLine("Transposition Table!");
+                return Tuple.Create(entry.action, entry.eval);
+            }
+        }
+
         Int64 alpha = LoseEval;
         Int64 beta = WinEval;
         var children = OrderedLegalMoves(state);
         var bestChild = children[0];
         state.Apply(bestChild);
-        var bestVal = DL_ABMin(state, depth-1, playerIsWhite, alpha, beta);
+        var bestVal = DL_ABMin(state, depth-1, q_depth, playerIsWhite, alpha, beta);
         Console.Write("(" + ChessEngine.tileToFR(bestChild.srcTile) + "-" + ChessEngine.tileToFR(bestChild.destTile) + " " + bestVal + " " + state.whiteCheck + " " + state.blackCheck + ")\t");
         state.Undo();
         alpha = bestVal;
         foreach(var child in children.Skip(1))
         {
             state.Apply(child);
-            var val = DL_ABMin(state, depth-1, playerIsWhite, alpha, beta);
+            var val = DL_ABMin(state, depth-1, q_depth, playerIsWhite, alpha, beta);
             Console.Write("(" + ChessEngine.tileToFR(child.srcTile) + "-" + ChessEngine.tileToFR(child.destTile) + " " + val + " " + state.whiteCheck + " " + state.blackCheck + ")\t");
             state.Undo();
             if (val > bestVal)
@@ -236,16 +279,27 @@ Attackers who have multiple targets and threaten king
         Console.WriteLine("");
 
         Console.WriteLine("Final Evaluation: " + bestVal);
+
+        UpdateTT(state.zobristHash, bestChild, depth, bestVal);
         return Tuple.Create(bestChild, bestVal);
     }
 
-    private static Int64 DL_ABMax(XBoard state, int depth, bool maxWhite, Int64 alpha, Int64 beta)
+    private static Int64 DL_ABMax(XBoard state, int depth, int q_depth, bool maxWhite, Int64 alpha, Int64 beta)
     {
         if (state.stateHistory.ContainsKey(state.zobristHash))
         {
             if (state.stateHistory[state.zobristHash] >= 2)
             {
                 return 0;
+            }
+        }
+
+        if (TranspositionTable.ContainsKey(state.zobristHash))
+        {
+            var entry = TranspositionTable[state.zobristHash];
+            if (entry.depth >= depth)
+            {
+                return entry.eval;
             }
         }
 
@@ -288,67 +342,84 @@ Attackers who have multiple targets and threaten king
             return 0;
         }
 
-        if (depth == 0 && (state.whiteCheck || state.blackCheck))
-        {
-            depth = 1;
-        }
+        var quiet = !(state.whiteCheck || state.blackCheck);
+        quiet = true;
 
-        if (depth == 0)
+        if (depth == 0 && (q_depth <= 0 || quiet))
         {
             return Heuristic(state, maxWhite);
         }
 
+        if (depth == 0)
+        {
+            q_depth -= 1;
+        }
+
         state.Apply(children[0]);
-        var maxH = DL_ABMin(state, depth-1, maxWhite, alpha, beta);
+        var maxH = DL_ABMin(state, depth-1, q_depth, maxWhite, alpha, beta);
         state.Undo();
         if (maxH > alpha)
         {
             alpha = maxH;
             if (maxH >= beta)
             {
-                if (!historyTable.ContainsKey(children[0]))
+                if (!HistoryTable.ContainsKey(children[0]))
                 {
-                    historyTable[children[0]] = 0;
+                    HistoryTable[children[0]] = 0;
                 }
-                historyTable[children[0]] += depth*depth;
+                HistoryTable[children[0]] += (2 << depth) * q_depth;
+                UpdateTT(state.zobristHash, children[0], depth, maxH);
                 return beta;
             }
         }
 
+        var bestAction = children[0];
         foreach(var child in children.Skip(1))
         {
             state.Apply(child);
-            var hVal = DL_ABMin(state, depth-1, maxWhite, alpha, beta);
+            var hVal = DL_ABMin(state, depth-1, q_depth, maxWhite, alpha, beta);
             state.Undo();
 
             if (hVal > maxH)
             {
                 maxH = hVal;
+                bestAction = child;
                 if (maxH > alpha)
                 {
                     alpha = maxH;
                     if (maxH >= beta)
                     {
-                        if (!historyTable.ContainsKey(child))
+                        if (!HistoryTable.ContainsKey(child))
                         {
-                            historyTable[child] = 0;
+                            HistoryTable[child] = 0;
                         }
-                        historyTable[child] += depth*depth;
+                        HistoryTable[child] += (2 << depth) * q_depth;
+                        UpdateTT(state.zobristHash, child, depth, maxH);
                         return beta;
                     }
                 }
             }
         }
+        UpdateTT(state.zobristHash, bestAction, depth, maxH);
         return maxH;
     }
 
-    private static Int64 DL_ABMin(XBoard state, int depth, bool maxWhite, Int64 alpha, Int64 beta)
+    private static Int64 DL_ABMin(XBoard state, int depth, int q_depth, bool maxWhite, Int64 alpha, Int64 beta)
     {
         if (state.stateHistory.ContainsKey(state.zobristHash))
         {
             if (state.stateHistory[state.zobristHash] >= 2)
             {
                 return 0;
+            }
+        }
+
+        if (TranspositionTable.ContainsKey(state.zobristHash))
+        {
+            var entry = TranspositionTable[state.zobristHash];
+            if (entry.depth >= depth)
+            {
+                return entry.eval;
             }
         }
 
@@ -391,57 +462,65 @@ Attackers who have multiple targets and threaten king
             return 0;
         }
 
-        if (depth == 0 && (state.whiteCheck || state.blackCheck))
-        {
-            depth = 1;
-        }
+        var quiet = !(state.whiteCheck || state.blackCheck);
+        quiet = true;
 
-        if (depth == 0)
+        if (depth == 0 && (q_depth <= 0 || quiet))
         {
             return Heuristic(state, maxWhite);
         }
 
+        if (depth == 0)
+        {
+            q_depth -= 1;
+        }
+
         state.Apply(children[0]);
-        var minH = DL_ABMax(state, depth-1, maxWhite, alpha, beta);
+        var minH = DL_ABMax(state, depth-1, q_depth, maxWhite, alpha, beta);
         state.Undo();
         if (minH < beta)
         {
             beta = minH;
             if (minH < alpha)
             {
-                if (!historyTable.ContainsKey(children[0]))
+                if (!HistoryTable.ContainsKey(children[0]))
                 {
-                    historyTable[children[0]] = 0;
+                    HistoryTable[children[0]] = 0;
                 }
-                historyTable[children[0]] += depth*depth;
+                HistoryTable[children[0]] += (2 << depth) * q_depth;
+                UpdateTT(state.zobristHash, children[0], depth, minH);
                 return alpha;
             }
         }
 
+        var bestAction = children[0];
         foreach(var child in children.Skip(1))
         {
             state.Apply(child);
-            var hVal = DL_ABMax(state, depth-1, maxWhite, alpha, beta);
+            var hVal = DL_ABMax(state, depth-1, q_depth, maxWhite, alpha, beta);
             state.Undo();
 
             if (hVal < minH)
             {
                 minH = hVal;
+                bestAction = child;
                 if (minH < beta)
                 {
                     beta = minH;
                     if (minH < alpha)
                     {
-                        if (!historyTable.ContainsKey(child))
+                        if (!HistoryTable.ContainsKey(child))
                         {
-                            historyTable[child] = 0;
+                            HistoryTable[child] = 0;
                         }
-                        historyTable[child] += depth*depth;
+                        HistoryTable[child] += (2 << depth) * q_depth;
+                        UpdateTT(state.zobristHash, child, depth, minH);
                         return alpha;
                     }
                 }
             }
         }
+        UpdateTT(state.zobristHash, bestAction, depth, minH);
         return minH;
     }
 
@@ -449,7 +528,7 @@ Attackers who have multiple targets and threaten king
     {
         return LegalMoves(state)
             .OrderBy(n => n.attackType)
-            .ThenByDescending(n => historyTable.GetValueOrDefault(n, 0))
+            .ThenByDescending(n => HistoryTable.GetValueOrDefault(n, 0))
             .ThenBy(n => rand.Next())
             .ToList();
     }

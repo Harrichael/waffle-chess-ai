@@ -183,7 +183,7 @@ public class ChessEngine
         Console.Write("50 Move Counter: ");
         Console.WriteLine(this.board.halfMoveClock);
 
-        var action = ChessStrategy.TLID_ABMinimax(this.board, 250, this.aiIsWhite);
+        var action = ChessStrategy.TLID_ABMinimax(this.board, 500, 3, this.aiIsWhite);
 
         var zobrist = this.board.zobristHash;
         this.board.Apply(action);
