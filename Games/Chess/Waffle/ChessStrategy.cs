@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
+using System.Threading.Tasks;
+using System.Threading;
 
 using static ChessRules;
 
@@ -20,7 +22,6 @@ public class TTEntry
         this.eval = eval;
     }
 }
-
 
 public static class ChessStrategy
 {
@@ -244,27 +245,19 @@ Attackers who have multiple targets and threaten king
 
     public static XAction TLID_ABMinimax(XBoard state, int limitMS, int q_depth, bool playerIsWhite)
     {
-        Stopwatch timer = new Stopwatch();
-        int depth = 1;
-        timer.Start();
-        Tuple<XAction, Int64> action_eval = DL_ABMinimax(state, depth, q_depth, playerIsWhite);
-        if (action_eval.Item2 == WinEval)
+        var task = new Task(() => ID_ABMinimax(state, q_depth, playerIsWhite));
+        task.Start();
+        Thread.Sleep(limitMS);
+        StopSearch();
+        task.Wait();
+        ContinueSearch();
+
+        if (TranspositionTable.ContainsKey(state.zobristHash))
         {
-            timer.Stop();
-            return action_eval.Item1;
+            return TranspositionTable[state.zobristHash].action;
+        } else {
+            return DL_ABMinimax(state, 1, q_depth, playerIsWhite).Item1;
         }
-        while ((timer.ElapsedMilliseconds < limitMS) && continueSearch)
-        {
-            depth += 1;
-            action_eval = DL_ABMinimax(state, depth, q_depth, playerIsWhite);
-            if (action_eval.Item2 == WinEval)
-            {
-                timer.Stop();
-                return action_eval.Item1;
-            }
-        }
-        timer.Stop();
-        return action_eval.Item1;
     }
 
     public static Tuple<XAction, Int64> DL_ABMinimax(XBoard state, int depth, int q_depth, bool playerIsWhite)
@@ -281,7 +274,7 @@ Attackers who have multiple targets and threaten king
 
         Int64 alpha = LoseEval;
         Int64 beta = WinEval;
-        var children = OrderedLegalMoves(state);
+        var children = OrderedLegalMoves(state, true);
         var bestChild = children[0];
         state.Apply(bestChild);
         Int64 bestVal;
@@ -374,7 +367,7 @@ Attackers who have multiple targets and threaten king
             return Heuristic(state, maxWhite);
         }
 
-        var children = OrderedLegalMoves(state);
+        var children = OrderedLegalMoves(state, false);
         if (children.Count() == 0) // Is terminal
         {
             if (state.whiteCheck || state.blackCheck) // Check Mate
@@ -383,6 +376,9 @@ Attackers who have multiple targets and threaten king
             } else { // Stalemate
                 return 0;
             }
+        } else if (children.Count() == 1) // Singular Extensions
+        {
+            depth += 1;
         }
 
         if (state.halfMoveClock >= 100)
@@ -506,7 +502,7 @@ Attackers who have multiple targets and threaten king
             return Heuristic(state, maxWhite);
         }
 
-        var children = OrderedLegalMoves(state);
+        var children = OrderedLegalMoves(state, false);
         if (children.Count() == 0) // Is terminal
         {
             if (state.whiteCheck || state.blackCheck) // Check Mate
@@ -515,6 +511,9 @@ Attackers who have multiple targets and threaten king
             } else { // Stalemate
                 return 0;
             }
+        } else if (children.Count() == 1) // Singular Extensions
+        {
+            depth += 1;
         }
 
         if (state.halfMoveClock >= 100)
@@ -596,9 +595,11 @@ Attackers who have multiple targets and threaten king
         return minH;
     }
 
-    private static List<XAction> OrderedLegalMoves(XBoard state)
+    private static List<XAction> OrderedLegalMoves(XBoard state, bool fullBranch)
     {
-        return LegalMoves(state)
+        
+        return
+            ( !fullBranch && OpeningBook.Table.ContainsKey(state.zobristHash) ? OpeningBook.Table[state.zobristHash] : LegalMoves(state) )
             .OrderBy(n => TranspositionTable.ContainsKey(state.zobristHash) && TranspositionTable[state.zobristHash].action != n)
             .ThenBy(n => n.attackType)
             .ThenByDescending(n => HistoryTable.GetValueOrDefault(n, 0))
