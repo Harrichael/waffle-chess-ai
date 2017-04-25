@@ -2,11 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 public class ChessEngine
 {
     private XBoard board;
     private bool aiIsWhite;
+    private Task ponderTask;
 
     /// <summary>
     /// Initialize the engine with the board state, does not need to be standard start
@@ -183,7 +185,7 @@ public class ChessEngine
         Console.Write("50 Move Counter: ");
         Console.WriteLine(this.board.halfMoveClock);
 
-        var action = ChessStrategy.TLID_ABMinimax(this.board, 500, 3, this.aiIsWhite);
+        var action = ChessStrategy.TLID_ABMinimax(this.board, 300, 3, this.aiIsWhite);
 
         var zobrist = this.board.zobristHash;
         this.board.Apply(action);
@@ -200,6 +202,22 @@ public class ChessEngine
                              action.promotionType.ToString()
         );
     } // End Make Move
+
+    public void Ponder()
+    {
+        ponderTask = new Task(() => ChessStrategy.ID_ABMinimax(this.board, 3, this.aiIsWhite));
+        ponderTask.Start();
+    }
+
+    public void StopPonder()
+    {
+        if (this.ponderTask != null)
+        {
+            ChessStrategy.StopSearch();
+            this.ponderTask.Wait();
+            ChessStrategy.ContinueSearch();
+        }
+    }
 
     /// <summary>
     /// Helper for reading fen

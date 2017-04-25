@@ -188,19 +188,24 @@ Attackers who have multiple targets and threaten king
     /* Search variables */
     static Dictionary<XAction, int> HistoryTable = new Dictionary<XAction, int>();
     static Dictionary<UInt64, TTEntry> TranspositionTable = new Dictionary<UInt64, TTEntry>();
-    static Dictionary<int, XAction> pvPath = new Dictionary<int, XAction>();
+    static bool continueSearch = true;
 
-    public static void SetPV(XBoard state, XAction action)
+    public static void StopSearch()
     {
-        pvPath[state.NumMoves()] = action;
+        continueSearch = false;
     }
 
-    public static void UpdateTT(UInt64 zobristHash, XAction action, int depth, Int64 eval)
+    public static void ContinueSearch()
+    {
+        continueSearch = true;
+    }
+
+    private static void UpdateTT(UInt64 zobristHash, XAction action, int depth, Int64 eval)
     {
         if (TranspositionTable.ContainsKey(zobristHash))
         {
             var entry = TranspositionTable[zobristHash];
-            if (entry.depth < depth)
+            if (entry.depth <= depth)
             {
                 entry.action = action;
                 entry.eval = eval;
@@ -217,6 +222,26 @@ Attackers who have multiple targets and threaten king
         return sequence[rand.Next(sequence.Count())];
     }
 
+    public static XAction ID_ABMinimax(XBoard state, int q_depth, bool playerIsWhite)
+    {
+        int depth = 1;
+        Tuple<XAction, Int64> action_eval = DL_ABMinimax(state, depth, q_depth, playerIsWhite);
+        if (action_eval.Item2 == WinEval)
+        {
+            return action_eval.Item1;
+        }
+        while (continueSearch)
+        {
+            depth += 1;
+            action_eval = DL_ABMinimax(state, depth, q_depth, playerIsWhite);
+            if (action_eval.Item2 == WinEval)
+            {
+                return action_eval.Item1;
+            }
+        }
+        return action_eval.Item1;
+    }
+
     public static XAction TLID_ABMinimax(XBoard state, int limitMS, int q_depth, bool playerIsWhite)
     {
         Stopwatch timer = new Stopwatch();
@@ -228,7 +253,7 @@ Attackers who have multiple targets and threaten king
             timer.Stop();
             return action_eval.Item1;
         }
-        while (timer.ElapsedMilliseconds < limitMS)
+        while ((timer.ElapsedMilliseconds < limitMS) && continueSearch)
         {
             depth += 1;
             action_eval = DL_ABMinimax(state, depth, q_depth, playerIsWhite);
@@ -247,7 +272,7 @@ Attackers who have multiple targets and threaten king
         if (TranspositionTable.ContainsKey(state.zobristHash))
         {
             var entry = TranspositionTable[state.zobristHash];
-            if (entry.depth >= depth)
+            if (entry.depth >= depth && entry.action != null)
             {
                 Console.WriteLine("Transposition Table!");
                 return Tuple.Create(entry.action, entry.eval);
@@ -259,21 +284,44 @@ Attackers who have multiple targets and threaten king
         var children = OrderedLegalMoves(state);
         var bestChild = children[0];
         state.Apply(bestChild);
-        var bestVal = DL_ABMin(state, depth-1, q_depth, playerIsWhite, alpha, beta);
+        Int64 bestVal;
+        if (playerIsWhite != state.turnIsWhite)
+        {
+            bestVal = DL_ABMin(state, depth-1, q_depth, playerIsWhite, alpha, beta);
+            alpha = bestVal;
+        } else {
+            bestVal = DL_ABMax(state, depth-1, q_depth, playerIsWhite, alpha, beta);
+            beta = bestVal;
+        }
         Console.Write("(" + ChessEngine.tileToFR(bestChild.srcTile) + "-" + ChessEngine.tileToFR(bestChild.destTile) + " " + bestVal + " " + state.whiteCheck + " " + state.blackCheck + ")\t");
         state.Undo();
-        alpha = bestVal;
+        Int64 val;
         foreach(var child in children.Skip(1))
         {
             state.Apply(child);
-            var val = DL_ABMin(state, depth-1, q_depth, playerIsWhite, alpha, beta);
+            if (playerIsWhite != state.turnIsWhite)
+            {
+                val = DL_ABMin(state, depth-1, q_depth, playerIsWhite, alpha, beta);
+            } else {
+                val = DL_ABMax(state, depth-1, q_depth, playerIsWhite, alpha, beta);
+            }
             Console.Write("(" + ChessEngine.tileToFR(child.srcTile) + "-" + ChessEngine.tileToFR(child.destTile) + " " + val + " " + state.whiteCheck + " " + state.blackCheck + ")\t");
             state.Undo();
-            if (val > bestVal)
+            if (playerIsWhite == state.turnIsWhite)
             {
-                bestChild = child;
-                bestVal = val;
-                alpha = bestVal;
+                if (val > bestVal)
+                {
+                    bestChild = child;
+                    bestVal = val;
+                    alpha = bestVal;
+                }
+            } else {
+                if (val < bestVal)
+                {
+                    bestChild = child;
+                    bestVal = val;
+                    beta = bestVal;
+                }
             }
         }
         Console.WriteLine("");
@@ -343,15 +391,27 @@ Attackers who have multiple targets and threaten king
         }
 
         var quiet = !(state.whiteCheck || state.blackCheck);
-        quiet = true;
 
         if (depth == 0 && (q_depth <= 0 || quiet))
         {
             return Heuristic(state, maxWhite);
         }
 
+        if (!continueSearch)
+        {
+            if (TranspositionTable.ContainsKey(state.zobristHash))
+            {
+                return TranspositionTable[state.zobristHash].eval;
+            } else {
+                return Heuristic(state, maxWhite);
+            }
+        }
+
         if (depth == 0)
         {
+            // If we are here, this state is nonquiecessent.
+            // If we += 1 on depth, we get same behaviour but better transposition table usage
+            depth += 1;
             q_depth -= 1;
         }
 
@@ -463,15 +523,27 @@ Attackers who have multiple targets and threaten king
         }
 
         var quiet = !(state.whiteCheck || state.blackCheck);
-        quiet = true;
 
         if (depth == 0 && (q_depth <= 0 || quiet))
         {
             return Heuristic(state, maxWhite);
         }
 
+        if (!continueSearch)
+        {
+            if (TranspositionTable.ContainsKey(state.zobristHash))
+            {
+                return TranspositionTable[state.zobristHash].eval;
+            } else {
+                return Heuristic(state, maxWhite);
+            }
+        }
+
         if (depth == 0)
         {
+            // If we are here, this state is nonquiecessent.
+            // If we += 1 on depth, we get same behaviour but better transposition table usage
+            depth += 1;
             q_depth -= 1;
         }
 
@@ -527,7 +599,8 @@ Attackers who have multiple targets and threaten king
     private static List<XAction> OrderedLegalMoves(XBoard state)
     {
         return LegalMoves(state)
-            .OrderBy(n => n.attackType)
+            .OrderBy(n => TranspositionTable.ContainsKey(state.zobristHash) && TranspositionTable[state.zobristHash].action != n)
+            .ThenBy(n => n.attackType)
             .ThenByDescending(n => HistoryTable.GetValueOrDefault(n, 0))
             .ThenBy(n => rand.Next())
             .ToList();
@@ -1251,12 +1324,14 @@ Attackers who have multiple targets and threaten king
         whitePosition += defendedBonus * BitOps.CountBits(defendedWhitePositions) - threatenedPenalty * BitOps.CountBits(threatenedWhitePositions) * turnWhitePenalty;
         blackPosition += defendedBonus * BitOps.CountBits(defendedBlackPositions) - threatenedPenalty * BitOps.CountBits(threatenedBlackPositions) * turnBlackPenalty;
         
+        Int64 eval;
         if (playerIsWhite)
         {
-            return (Int64)(potentialWeight*(whitePotential - blackPotential) + positionWeight*(whitePosition - blackPosition));
+            eval = (Int64)(potentialWeight*(whitePotential - blackPotential) + positionWeight*(whitePosition - blackPosition));
+        } else {
+            eval = (Int64)(potentialWeight*(blackPotential - whitePotential) + positionWeight*(blackPosition - whitePosition));
         }
-        {
-            return (Int64)(potentialWeight*(blackPotential - whitePotential) + positionWeight*(blackPosition - whitePosition));
-        }
+        UpdateTT(state.zobristHash, null, 0, eval);
+        return eval;
     }
 }
