@@ -39,7 +39,7 @@ Attackers who have multiple targets and threaten king
     static readonly byte potentialWeight = 2;
     static readonly byte materialWeight = 5;
     static readonly byte staticWeight = 3;
-    static readonly byte positionWeight = 1;
+    static readonly byte positionWeight = 0;
 
     /* Material */
     static readonly byte QueenMaterial  = 180;
@@ -236,7 +236,7 @@ Attackers who have multiple targets and threaten king
         });
         task.Start();
 
-        var action = ID_ABMinimax(state, q_depth, playerIsWhite);
+        ID_ABMinimax(state, q_depth, playerIsWhite);
 
         tokenSource.Cancel();
         task.Wait();
@@ -391,7 +391,7 @@ Attackers who have multiple targets and threaten king
             return 0;
         }
 
-        var quiet = !(state.whiteCheck || state.blackCheck);
+        var quiet = !(state.whiteCheck || state.blackCheck || state.LastActionAttack());
 
         if (depth == 0 && (q_depth <= 0 || quiet))
         {
@@ -526,7 +526,7 @@ Attackers who have multiple targets and threaten king
             return 0;
         }
 
-        var quiet = !(state.whiteCheck || state.blackCheck);
+        var quiet = !(state.whiteCheck || state.blackCheck || state.LastActionAttack());
 
         if (depth == 0 && (q_depth <= 0 || quiet))
         {
@@ -647,6 +647,113 @@ Attackers who have multiple targets and threaten king
     }
 
     public static Int64 Heuristic(XBoard state, bool playerIsWhite)
+    {
+        UInt64 whiteMaterial = 0;
+        UInt64 whiteStatic = 0;
+        UInt64 blackMaterial = 0;
+        UInt64 blackStatic = 0;
+        UInt64 pieces;
+        UInt64 piece;
+        {
+            UInt64 whiteNumPawns = BitOps.CountBits(state.whitePawns);
+            UInt64 blackNumPawns = BitOps.CountBits(state.blackPawns);
+            whiteStatic += 3 * (whiteNumPawns - blackNumPawns);
+            blackStatic += 3 * (blackNumPawns - whiteNumPawns);
+            { // White Potential
+                pieces = state.whitePawns;
+                while (pieces != 0)
+                {
+                    piece = BitOps.MSB(pieces);
+                    pieces -= piece;
+    
+                    whiteStatic += PawnSquareTable[64 - BitOps.bbIndex(piece)];
+                }
+                whiteStatic += KingSquareTable[64 - BitOps.bbIndex(state.whiteKing)];
+    
+                whiteMaterial += 10 * whiteNumPawns;
+                whiteMaterial += 50 * BitOps.CountBits(state.whiteRooks);
+                whiteMaterial += 31 * BitOps.CountBits(state.whiteKnights);
+                whiteMaterial += 33 * BitOps.CountBits(state.whiteBishops);
+                whiteMaterial += 95 * BitOps.CountBits(state.whiteQueens);
+                if (state.whiteQueens != 0)
+                {
+                    whiteStatic += 50;
+                }
+                if (state.whiteCastleKS)
+                {
+                    whiteStatic += 15;
+                }
+                if (state.whiteCastleQS)
+                {
+                    whiteStatic += 15;
+                }
+                if (!state.whiteCastleKS && !state.whiteCastleQS && state.stateHistory.Count() < CastleTurnCutOff)
+                {
+                    if (state.whiteKing == whiteKSDest || state.whiteKing == whiteQSDest || ((state.whiteRooks & (whiteKSRookDest | whiteQSRookDest)) != 0))
+                    {
+                        whiteStatic += 35;
+                    }
+                }
+                if (BitOps.CountBits(state.whiteBishops) >= 2) {
+                    whiteMaterial += 50;
+                }
+            } // End White Potential
+            { // Black Potential
+                pieces = state.blackPawns;
+                while (pieces != 0)
+                {
+                    piece = BitOps.MSB(pieces);
+                    pieces -= piece;
+    
+                    blackStatic += PawnSquareTable[BitOps.bbIndex(piece) - 1];
+                }
+                blackStatic += KingSquareTable[BitOps.bbIndex(state.blackKing) - 1];
+    
+                blackMaterial += 10 * blackNumPawns;
+                blackMaterial += 50 * BitOps.CountBits(state.blackRooks);
+                blackMaterial += 31 * BitOps.CountBits(state.blackKnights);
+                blackMaterial += 33 * BitOps.CountBits(state.blackBishops);
+                blackMaterial += 95 * BitOps.CountBits(state.blackQueens);
+                if (state.blackQueens != 0)
+                {
+                    blackStatic += 50;
+                }
+                if (state.blackCastleKS)
+                {
+                    blackStatic += 15;
+                }
+                if (state.blackCastleQS)
+                {
+                    blackStatic += 15;
+                }
+                if (!state.blackCastleKS && !state.blackCastleQS && state.stateHistory.Count() < CastleTurnCutOff)
+                {
+                    if (state.blackKing == blackKSDest || state.blackKing == blackQSDest || ((state.blackRooks & (blackKSRookDest | blackQSRookDest)) != 0))
+                    {
+                        blackStatic += 35;
+                    }
+                }
+                if (BitOps.CountBits(state.blackBishops) >= 2) {
+                    blackMaterial += 50;
+                }
+            } // End Black Potential
+        }
+
+        UInt64 whitePotential = 5 * whiteMaterial + 2 * whiteStatic;
+        UInt64 blackPotential = 5 * blackMaterial + 2 * blackStatic;
+
+        Int64 eval;
+        if (playerIsWhite)
+        {
+            eval = (Int64)(whitePotential - blackPotential);
+        } else {
+            eval = (Int64)(blackPotential - whitePotential);
+        }
+        UpdateTT(state.LastZobristHash(), null, 0, eval);
+        return eval;
+    }
+
+    public static Int64 _Heuristic(XBoard state, bool playerIsWhite)
     {
         byte turnWhitePenalty = (byte)((state.turnIsWhite) ? turnSafeMult : turnThreatMult);
         byte turnBlackPenalty = (byte)((state.turnIsWhite) ? turnThreatMult : turnSafeMult);

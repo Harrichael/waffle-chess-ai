@@ -9,6 +9,12 @@ using System.Text;
 
 public static class OpeningBook
 {
+    public static void PrintEntries(XBoard state, string filename)
+    {
+        string children = "null";
+        Console.WriteLine("        { " + state.LastZobristHash() + ", new List<XAction> { " + children + " } },");
+    }
+
     public static readonly Dictionary<UInt64, List<XAction>> Table
         = new Dictionary<UInt64, List<XAction>>
     {

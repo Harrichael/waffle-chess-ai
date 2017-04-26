@@ -91,6 +91,7 @@ public class ChessEngine
         this.board.blackCheck = ChessRules.Threats(this.board, this.board.blackKing, true) != 0;
         this.board.finishInit();
 
+        OpeningBook.PrintEntries(this.board, "test.txt");
     } // End fen constructor method
 
     public void Print()
@@ -185,7 +186,7 @@ public class ChessEngine
         Console.Write("50 Move Counter: ");
         Console.WriteLine(this.board.halfMoveClock);
 
-        var action = ChessStrategy.TLID_ABMinimax(this.board, 300, 3, this.aiIsWhite);
+        var action = ChessStrategy.TLID_ABMinimax(this.board, 3000, 3, this.aiIsWhite);
 
         var zobrist = this.board.zobristHash;
         this.board.Apply(action);

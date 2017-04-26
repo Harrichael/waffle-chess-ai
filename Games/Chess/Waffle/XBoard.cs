@@ -143,6 +143,16 @@ public class XBoard
         }
     }
 
+    public bool LastActionAttack()
+    {
+        if (this.actionHistory.Count() >= 1)
+        {
+            return this.actionHistory.Peek().attackType != PieceType.None;
+        } else {
+            return false;
+        }
+    }
+
     public void Apply(XAction action)
     {
         this.actionHistory.Push(action);
