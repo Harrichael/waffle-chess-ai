@@ -133,6 +133,16 @@ public class XBoard
         return (XBoard)this.MemberwiseClone();
     }
 
+    public UInt64 LastZobristHash()
+    {
+        if (this.actionUndoHistory.Count() >= 1)
+        {
+            return this.actionUndoHistory.Peek().zobristHash;
+        } else {
+            return 0;
+        }
+    }
+
     public void Apply(XAction action)
     {
         this.actionHistory.Push(action);

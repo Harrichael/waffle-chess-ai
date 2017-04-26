@@ -37,10 +37,10 @@ public class XAction
 
     public bool Equals(XAction action)
     {
-        return ( (this.srcTile == action.srcTile)             &&
-                 (this.destTile == action.destTile)           &&
-                 (this.promotionType == action.promotionType) &&
-                 (this.pieceType == action.pieceType)         &&
+        return ( (this.srcTile == action.srcTile)                  &&
+                 (this.destTile == action.destTile)                &&
+                 (this.promotionType.Equals(action.promotionType)) &&
+                 (this.pieceType == action.pieceType)              &&
                  (this.attackType == action.attackType)
         );
     }

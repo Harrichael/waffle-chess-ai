@@ -223,6 +223,25 @@ Attackers who have multiple targets and threaten king
         return sequence[rand.Next(sequence.Count())];
     }
 
+    public static XAction TLID_ABMinimax(XBoard state, int limitMS, int q_depth, bool playerIsWhite)
+    {
+        var tokenSource = new CancellationTokenSource();
+        var ct = tokenSource.Token;
+        var task = new Task(() => {
+            ct.WaitHandle.WaitOne(limitMS);
+            StopSearch();
+        });
+        task.Start();
+
+        var action = ID_ABMinimax(state, q_depth, playerIsWhite);
+
+        tokenSource.Cancel();
+        task.Wait();
+        ContinueSearch();
+        tokenSource.Dispose();
+        return action;
+    }
+
     public static XAction ID_ABMinimax(XBoard state, int q_depth, bool playerIsWhite)
     {
         int depth = 1;
@@ -241,23 +260,6 @@ Attackers who have multiple targets and threaten king
             }
         }
         return action_eval.Item1;
-    }
-
-    public static XAction TLID_ABMinimax(XBoard state, int limitMS, int q_depth, bool playerIsWhite)
-    {
-        var task = new Task(() => ID_ABMinimax(state, q_depth, playerIsWhite));
-        task.Start();
-        Thread.Sleep(limitMS);
-        StopSearch();
-        task.Wait();
-        ContinueSearch();
-
-        if (TranspositionTable.ContainsKey(state.zobristHash))
-        {
-            return TranspositionTable[state.zobristHash].action;
-        } else {
-            return DL_ABMinimax(state, 1, q_depth, playerIsWhite).Item1;
-        }
     }
 
     public static Tuple<XAction, Int64> DL_ABMinimax(XBoard state, int depth, int q_depth, bool playerIsWhite)
@@ -597,10 +599,9 @@ Attackers who have multiple targets and threaten king
 
     private static List<XAction> OrderedLegalMoves(XBoard state, bool fullBranch)
     {
-        
         return
             ( !fullBranch && OpeningBook.Table.ContainsKey(state.zobristHash) ? OpeningBook.Table[state.zobristHash] : LegalMoves(state) )
-            .OrderBy(n => TranspositionTable.ContainsKey(state.zobristHash) && TranspositionTable[state.zobristHash].action != n)
+            .OrderBy(n => TranspositionTable.ContainsKey(state.zobristHash) && !TranspositionTable[state.zobristHash].action.Equals(n))
             .ThenBy(n => n.attackType)
             .ThenByDescending(n => HistoryTable.GetValueOrDefault(n, 0))
             .ThenBy(n => rand.Next())
@@ -1332,7 +1333,7 @@ Attackers who have multiple targets and threaten king
         } else {
             eval = (Int64)(potentialWeight*(blackPotential - whitePotential) + positionWeight*(blackPosition - whitePosition));
         }
-        UpdateTT(state.zobristHash, null, 0, eval);
+        UpdateTT(state.LastZobristHash(), null, 0, eval);
         return eval;
     }
 }
