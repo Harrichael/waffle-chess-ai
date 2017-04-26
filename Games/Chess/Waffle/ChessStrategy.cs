@@ -14,12 +14,19 @@ public class TTEntry
     public XAction action;
     public int depth;
     public Int64 eval;
+    public int age;
 
-    public TTEntry(XAction action, int depth, Int64 eval)
+    public TTEntry(XAction action, int depth, Int64 eval, int age)
     {
         this.action = action;
         this.depth = depth;
         this.eval = eval;
+        this.age = age;
+    }
+
+    public bool Expired(int age)
+    {
+        return this.age + 100000 < age;
     }
 }
 
@@ -193,6 +200,7 @@ Attackers who have multiple targets and threaten king
     static int timeLimit;
     static bool timerOn = true;
     static Stopwatch timer = new Stopwatch();
+    static int pNumNodes = 0;
 
     public static void StopSearch()
     {
@@ -222,21 +230,22 @@ Attackers who have multiple targets and threaten king
         return timerOn && timer.ElapsedMilliseconds > timeLimit;
     }
 
-    private static void UpdateTT(UInt64 zobristHash, XAction action, int depth, Int64 eval)
+    private static void UpdateTT(UInt64 zobristHash, XAction action, int depth, Int64 eval, int age)
     {
         if (continueSearch && !OutOfTime())
         {
             if (TranspositionTable.ContainsKey(zobristHash))
             {
                 var entry = TranspositionTable[zobristHash];
-                if (entry.depth <= depth)
+                if (entry.depth <= depth || entry.Expired(age))
                 {
                     entry.action = action;
                     entry.eval = eval;
                     entry.depth = depth;
+                    entry.age = age;
                 }
             } else {
-                var entry = new TTEntry(action, depth, eval);
+                var entry = new TTEntry(action, depth, eval, age);
                 TranspositionTable[zobristHash] = entry;
             }
         }
@@ -264,6 +273,7 @@ Attackers who have multiple targets and threaten king
 
     public static XAction ID_ABMinimax(XBoard state, int q_depth, bool playerIsWhite)
     {
+        pNumNodes += 1;
         int depth = 1;
         Tuple<XAction, Int64> action_eval = DL_ABMinimax(state, depth, q_depth, playerIsWhite);
         if (action_eval.Item2 == WinEval)
@@ -284,12 +294,13 @@ Attackers who have multiple targets and threaten king
 
     public static Tuple<XAction, Int64> DL_ABMinimax(XBoard state, int depth, int q_depth, bool playerIsWhite)
     {
+        pNumNodes += 1;
         if (TranspositionTable.ContainsKey(state.zobristHash))
         {
             var entry = TranspositionTable[state.zobristHash];
-            if (entry.depth >= depth && entry.action != null)
+            if (entry.depth >= depth && entry.action != null && !entry.Expired(pNumNodes))
             {
-                Console.WriteLine("Transposition Table!");
+                Console.WriteLine("Transposition Table Age: " + pNumNodes);
                 return Tuple.Create(entry.action, entry.eval);
             }
         }
@@ -343,12 +354,13 @@ Attackers who have multiple targets and threaten king
 
         Console.WriteLine("Final Evaluation: " + bestVal);
 
-        UpdateTT(state.zobristHash, bestChild, depth, bestVal);
+        UpdateTT(state.zobristHash, bestChild, depth, bestVal, pNumNodes);
         return Tuple.Create(bestChild, bestVal);
     }
 
     private static Int64 DL_ABMax(XBoard state, int depth, int q_depth, bool maxWhite, Int64 alpha, Int64 beta)
     {
+        pNumNodes += 1;
         if (state.stateHistory.ContainsKey(state.zobristHash))
         {
             if (state.stateHistory[state.zobristHash] >= 2)
@@ -360,7 +372,7 @@ Attackers who have multiple targets and threaten king
         if (TranspositionTable.ContainsKey(state.zobristHash))
         {
             var entry = TranspositionTable[state.zobristHash];
-            if (entry.depth >= depth)
+            if (entry.depth >= depth || entry.Expired(pNumNodes))
             {
                 return entry.eval;
             }
@@ -446,7 +458,7 @@ Attackers who have multiple targets and threaten king
                     HistoryTable[children[0]] = 0;
                 }
                 HistoryTable[children[0]] += (2 << depth) * q_depth;
-                UpdateTT(state.zobristHash, children[0], depth, maxH);
+                UpdateTT(state.zobristHash, children[0], depth, maxH, pNumNodes);
                 return beta;
             }
         }
@@ -472,13 +484,13 @@ Attackers who have multiple targets and threaten king
                             HistoryTable[child] = 0;
                         }
                         HistoryTable[child] += (2 << depth) * q_depth;
-                        UpdateTT(state.zobristHash, child, depth, maxH);
+                        UpdateTT(state.zobristHash, child, depth, maxH, pNumNodes);
                         return beta;
                     }
                 }
             }
         }
-        UpdateTT(state.zobristHash, bestAction, depth, maxH);
+        UpdateTT(state.zobristHash, bestAction, depth, maxH, pNumNodes);
         return maxH;
     }
 
@@ -495,7 +507,7 @@ Attackers who have multiple targets and threaten king
         if (TranspositionTable.ContainsKey(state.zobristHash))
         {
             var entry = TranspositionTable[state.zobristHash];
-            if (entry.depth >= depth)
+            if (entry.depth >= depth || entry.Expired(pNumNodes))
             {
                 return entry.eval;
             }
@@ -581,7 +593,7 @@ Attackers who have multiple targets and threaten king
                     HistoryTable[children[0]] = 0;
                 }
                 HistoryTable[children[0]] += (2 << depth) * q_depth;
-                UpdateTT(state.zobristHash, children[0], depth, minH);
+                UpdateTT(state.zobristHash, children[0], depth, minH, pNumNodes);
                 return alpha;
             }
         }
@@ -607,13 +619,13 @@ Attackers who have multiple targets and threaten king
                             HistoryTable[child] = 0;
                         }
                         HistoryTable[child] += (2 << depth) * q_depth;
-                        UpdateTT(state.zobristHash, child, depth, minH);
+                        UpdateTT(state.zobristHash, child, depth, minH, pNumNodes);
                         return alpha;
                     }
                 }
             }
         }
-        UpdateTT(state.zobristHash, bestAction, depth, minH);
+        UpdateTT(state.zobristHash, bestAction, depth, minH, pNumNodes);
         return minH;
     }
 
@@ -766,7 +778,7 @@ Attackers who have multiple targets and threaten king
         } else {
             eval = (Int64)(blackPotential - whitePotential);
         }
-        UpdateTT(state.LastZobristHash(), null, 0, eval);
+        UpdateTT(state.LastZobristHash(), null, 0, eval, pNumNodes);
         return eval;
     }
 
@@ -1465,7 +1477,7 @@ Attackers who have multiple targets and threaten king
         } else {
             eval = (Int64)(potentialWeight*(blackPotential - whitePotential) + positionWeight*(blackPosition - whitePosition));
         }
-        UpdateTT(state.LastZobristHash(), null, 0, eval);
+        UpdateTT(state.LastZobristHash(), null, 0, eval, pNumNodes);
         return eval;
     }
 }
