@@ -242,7 +242,7 @@ Attackers who have multiple targets and threaten king
         task.Wait();
         ContinueSearch();
         tokenSource.Dispose();
-        return action;
+        return TranspositionTable[state.zobristHash].action;
     }
 
     public static XAction ID_ABMinimax(XBoard state, int q_depth, bool playerIsWhite)
