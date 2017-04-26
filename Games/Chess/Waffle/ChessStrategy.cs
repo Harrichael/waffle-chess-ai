@@ -190,6 +190,9 @@ Attackers who have multiple targets and threaten king
     static Dictionary<XAction, int> HistoryTable = new Dictionary<XAction, int>();
     static Dictionary<UInt64, TTEntry> TranspositionTable = new Dictionary<UInt64, TTEntry>();
     static bool continueSearch = true;
+    static int timeLimit;
+    static bool timerOn = true;
+    static Stopwatch timer = new Stopwatch();
 
     public static void StopSearch()
     {
@@ -201,9 +204,27 @@ Attackers who have multiple targets and threaten king
         continueSearch = true;
     }
 
+    private static void SetTimer(int limitMS)
+    {
+        timerOn = true;
+        timeLimit = limitMS;
+        timer.Start();
+    }
+
+    private static void ResetTimer()
+    {
+        timerOn = false;
+        timer.Reset();
+    }
+
+    private static bool OutOfTime()
+    {
+        return timerOn && timer.ElapsedMilliseconds > timeLimit;
+    }
+
     private static void UpdateTT(UInt64 zobristHash, XAction action, int depth, Int64 eval)
     {
-        if (continueSearch)
+        if (continueSearch && !OutOfTime())
         {
             if (TranspositionTable.ContainsKey(zobristHash))
             {
@@ -211,7 +232,7 @@ Attackers who have multiple targets and threaten king
                 if (entry.depth <= depth)
                 {
                     entry.action = action;
-                        entry.eval = eval;
+                    entry.eval = eval;
                     entry.depth = depth;
                 }
             } else {
@@ -228,21 +249,17 @@ Attackers who have multiple targets and threaten king
 
     public static XAction TLID_ABMinimax(XBoard state, int limitMS, int q_depth, bool playerIsWhite)
     {
-        var tokenSource = new CancellationTokenSource();
-        var ct = tokenSource.Token;
-        var task = new Task(() => {
-            ct.WaitHandle.WaitOne(limitMS);
-            StopSearch();
-        });
-        task.Start();
-
-        ID_ABMinimax(state, q_depth, playerIsWhite);
-
-        tokenSource.Cancel();
-        task.Wait();
-        ContinueSearch();
-        tokenSource.Dispose();
-        return TranspositionTable[state.zobristHash].action;
+        SetTimer(limitMS);
+        var action = ID_ABMinimax(state, q_depth, playerIsWhite);
+        Console.WriteLine("Search took " + timer.ElapsedMilliseconds + " of " + limitMS);
+        ResetTimer();
+        if (TranspositionTable.ContainsKey(state.zobristHash))
+        {
+            return TranspositionTable[state.zobristHash].action;
+        } else {
+            Console.WriteLine(" ------------------ ERROR: No Time -----------------------");
+            return action;
+        }
     }
 
     public static XAction ID_ABMinimax(XBoard state, int q_depth, bool playerIsWhite)
@@ -253,7 +270,7 @@ Attackers who have multiple targets and threaten king
         {
             return action_eval.Item1;
         }
-        while (continueSearch)
+        while (continueSearch && !OutOfTime())
         {
             depth += 1;
             action_eval = DL_ABMinimax(state, depth, q_depth, playerIsWhite);
@@ -279,7 +296,7 @@ Attackers who have multiple targets and threaten king
 
         Int64 alpha = LoseEval;
         Int64 beta = WinEval;
-        var children = OrderedLegalMoves(state, true);
+        var children = OrderedLegalMoves(state, false);
         var bestChild = children[0];
         state.Apply(bestChild);
         Int64 bestVal;
@@ -398,7 +415,7 @@ Attackers who have multiple targets and threaten king
             return Heuristic(state, maxWhite);
         }
 
-        if (!continueSearch)
+        if (!continueSearch || OutOfTime())
         {
             if (TranspositionTable.ContainsKey(state.zobristHash))
             {
@@ -533,7 +550,7 @@ Attackers who have multiple targets and threaten king
             return Heuristic(state, maxWhite);
         }
 
-        if (!continueSearch)
+        if (!continueSearch || OutOfTime())
         {
             if (TranspositionTable.ContainsKey(state.zobristHash))
             {

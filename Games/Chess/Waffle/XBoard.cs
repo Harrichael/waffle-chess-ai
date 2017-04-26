@@ -135,7 +135,7 @@ public class XBoard
 
     public UInt64 LastZobristHash()
     {
-        if (this.actionUndoHistory.Count() >= 1)
+        if (this.actionUndoHistory.Count() > 0)
         {
             return this.actionUndoHistory.Peek().zobristHash;
         } else {
@@ -145,11 +145,19 @@ public class XBoard
 
     public bool LastActionAttack()
     {
-        if (this.actionHistory.Count() >= 1)
+        if (this.actionHistory.Count() > 0)
         {
             return this.actionHistory.Peek().attackType != PieceType.None;
         } else {
             return false;
+        }
+    }
+
+    public void UndoAll()
+    {
+        while (this.actionHistory.Count() > 0)
+        {
+            this.Undo();
         }
     }
 

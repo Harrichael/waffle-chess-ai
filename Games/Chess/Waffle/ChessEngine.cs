@@ -91,7 +91,7 @@ public class ChessEngine
         this.board.blackCheck = ChessRules.Threats(this.board, this.board.blackKing, true) != 0;
         this.board.finishInit();
 
-        OpeningBook.PrintEntries(this.board, "test.txt");
+        //OpeningBook.PrintEntries(this.board, "test.txt");
     } // End fen constructor method
 
     public void Print()
