@@ -392,7 +392,7 @@ Attackers who have multiple targets and threaten king
             }
         }
 
-        if ( !(state.whiteCheck || state.blackCheck) && (depth == 0)) // Optimization, don't calculate children on noncheckmate
+        if ( !(state.whiteCheck || state.blackCheck) && (depth <= 0)) // Optimization, don't calculate children on noncheckmate
         {
             if (state.halfMoveClock >= 100)
             {
@@ -422,7 +422,7 @@ Attackers who have multiple targets and threaten king
 
         var quiet = !(state.whiteCheck || state.blackCheck || state.LastActionAttack());
 
-        if (depth == 0 && (q_depth <= 0 || quiet))
+        if (depth <= 0 && (q_depth <= 0 || quiet))
         {
             return Heuristic(state, maxWhite);
         }
@@ -437,7 +437,7 @@ Attackers who have multiple targets and threaten king
             }
         }
 
-        if (depth == 0)
+        if (depth <= 0)
         {
             // If we are here, this state is nonquiecessent.
             // If we += 1 on depth, we get same behaviour but better transposition table usage
@@ -527,7 +527,7 @@ Attackers who have multiple targets and threaten king
             }
         }
 
-        if ( !(state.whiteCheck || state.blackCheck) && (depth == 0)) // Optimization, don't calculate children on noncheckmate
+        if ( !(state.whiteCheck || state.blackCheck) && (depth <= 0)) // Optimization, don't calculate children on noncheckmate
         {
             if (state.halfMoveClock >= 100)
             {
@@ -557,7 +557,7 @@ Attackers who have multiple targets and threaten king
 
         var quiet = !(state.whiteCheck || state.blackCheck || state.LastActionAttack());
 
-        if (depth == 0 && (q_depth <= 0 || quiet))
+        if (depth <= 0 && (q_depth <= 0 || quiet))
         {
             return Heuristic(state, maxWhite);
         }
@@ -572,7 +572,7 @@ Attackers who have multiple targets and threaten king
             }
         }
 
-        if (depth == 0)
+        if (depth <= 0)
         {
             // If we are here, this state is nonquiecessent.
             // If we += 1 on depth, we get same behaviour but better transposition table usage
