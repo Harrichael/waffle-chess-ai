@@ -39,7 +39,7 @@ public class XAction
     {
         return ( (this.srcTile == action.srcTile)                  &&
                  (this.destTile == action.destTile)                &&
-                 (this.promotionType.Equals(action.promotionType)) &&
+                 (this.promotionType == action.promotionType)      &&
                  (this.pieceType == action.pieceType)              &&
                  (this.attackType == action.attackType)
         );

@@ -203,18 +203,21 @@ Attackers who have multiple targets and threaten king
 
     private static void UpdateTT(UInt64 zobristHash, XAction action, int depth, Int64 eval)
     {
-        if (TranspositionTable.ContainsKey(zobristHash))
+        if (continueSearch)
         {
-            var entry = TranspositionTable[zobristHash];
-            if (entry.depth <= depth)
+            if (TranspositionTable.ContainsKey(zobristHash))
             {
-                entry.action = action;
-                entry.eval = eval;
-                entry.depth = depth;
+                var entry = TranspositionTable[zobristHash];
+                if (entry.depth <= depth)
+                {
+                    entry.action = action;
+                        entry.eval = eval;
+                    entry.depth = depth;
+                }
+            } else {
+                var entry = new TTEntry(action, depth, eval);
+                TranspositionTable[zobristHash] = entry;
             }
-        } else {
-            var entry = new TTEntry(action, depth, eval);
-            TranspositionTable[zobristHash] = entry;
         }
     }
 
@@ -599,9 +602,14 @@ Attackers who have multiple targets and threaten king
 
     private static List<XAction> OrderedLegalMoves(XBoard state, bool fullBranch)
     {
+        Func<XAction, bool> CheckPV = n => false;
+        if (TranspositionTable.ContainsKey(state.zobristHash) && TranspositionTable[state.zobristHash].action != null)
+        {
+            CheckPV = n => !n.Equals(TranspositionTable[state.zobristHash].action);
+        }
         return
             ( !fullBranch && OpeningBook.Table.ContainsKey(state.zobristHash) ? OpeningBook.Table[state.zobristHash] : LegalMoves(state) )
-            .OrderBy(n => TranspositionTable.ContainsKey(state.zobristHash) && !TranspositionTable[state.zobristHash].action.Equals(n))
+            .OrderBy(n => CheckPV(n))
             .ThenBy(n => n.attackType)
             .ThenByDescending(n => HistoryTable.GetValueOrDefault(n, 0))
             .ThenBy(n => rand.Next())
