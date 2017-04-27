@@ -29,19 +29,15 @@ public class XAction
     {
         return ( this.srcTile.GetHashCode() * 23 +
                  this.destTile.GetHashCode() * 17 +
-                 (int)this.promotionType * 67 +
-                 (int)this.pieceType * 13 +
-                 (int)this.attackType * 7
+                 (int)this.promotionType * 67
                );
     }
 
     public bool Equals(XAction action)
     {
-        return ( (this.srcTile == action.srcTile)                  &&
-                 (this.destTile == action.destTile)                &&
-                 (this.promotionType == action.promotionType)      &&
-                 (this.pieceType == action.pieceType)              &&
-                 (this.attackType == action.attackType)
+        return ( (this.srcTile == action.srcTile)             &&
+                 (this.destTile == action.destTile)           &&
+                 (this.promotionType == action.promotionType)
         );
     }
 }

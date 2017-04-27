@@ -1,14 +1,3 @@
-# Bonus
-
-Transposition Table
-Pondering
-Opening Table
-
-BitBoards
-PV Move Ordering
-Improved State Eval (no choice)
-
-
 # Chess C# Client
 
 This is the root of your AI. Stay out of the `Joueur/` folder, it does most of the heavy lifting to play on our game servers. Your AI, and the game objects it manipulates are all in `Games/Chess/`, with your very own AI living in `Games/Chess/ai.cs` for you to make smarter.

@@ -4,31 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
-using System.Threading.Tasks;
-using System.Threading;
 
 using static ChessRules;
-
-public class TTEntry
-{
-    public XAction action;
-    public int depth;
-    public Int64 eval;
-    public int age;
-
-    public TTEntry(XAction action, int depth, Int64 eval, int age)
-    {
-        this.action = action;
-        this.depth = depth;
-        this.eval = eval;
-        this.age = age;
-    }
-
-    public bool Expired(int age)
-    {
-        return this.age + 3 < age;
-    }
-}
 
 public static class ChessStrategy
 {
@@ -43,18 +20,18 @@ Attackers who have multiple targets and threaten king
     private static Int64 LoseEval = -WinEval;
 
     private static Random rand = new Random();
-    static readonly byte potentialWeight = 5;
+    static readonly byte potentialWeight = 2;
     static readonly byte materialWeight = 5;
     static readonly byte staticWeight = 3;
     static readonly byte positionWeight = 1;
 
     /* Material */
-    static readonly byte QueenMaterial  = 95;
-    static readonly byte RookMaterial   = 55;
-    static readonly byte BishopMaterial = 33;
-    static readonly byte KnightMaterial = 31;
-    static readonly byte PawnMaterial   = 10;
-    static readonly byte BishopPairBonus = 50;
+    static readonly byte QueenMaterial  = 180;
+    static readonly byte RookMaterial   = 85;
+    static readonly byte BishopMaterial = 70;
+    static readonly byte KnightMaterial = 60;
+    static readonly byte PawnMaterial   = 12;
+    static readonly byte BishopPairBonus = 40;
 
     /* Static */
     static readonly uint QueenExistenceBonus = 500;
@@ -193,174 +170,68 @@ Attackers who have multiple targets and threaten king
     static readonly byte KingDefendBishopValue = 10;
     static readonly byte KingDefendQueenValue  = 10;
 
-    /* Search variables */
-    static Dictionary<XAction, int> HistoryTable = new Dictionary<XAction, int>();
-    static Dictionary<UInt64, TTEntry> TranspositionTable = new Dictionary<UInt64, TTEntry>();
-    static bool continueSearch = true;
-    static int timeLimit;
-    static bool timerOn = true;
-    static Stopwatch timer = new Stopwatch();
-    static int pNumNodes = 0;
-
-    public static void StopSearch()
-    {
-        continueSearch = false;
-    }
-
-    public static void ContinueSearch()
-    {
-        continueSearch = true;
-    }
-
-    private static void SetTimer(int limitMS)
-    {
-        timerOn = true;
-        timeLimit = limitMS;
-        timer.Start();
-    }
-
-    private static void ResetTimer()
-    {
-        timerOn = false;
-        timer.Reset();
-    }
-
-    private static bool OutOfTime()
-    {
-        return timerOn && timer.ElapsedMilliseconds > timeLimit;
-    }
-
-    private static void UpdateTT(UInt64 zobristHash, XAction action, int depth, Int64 eval, int age)
-    {
-        if (continueSearch && !OutOfTime())
-        {
-            if (TranspositionTable.ContainsKey(zobristHash))
-            {
-                var entry = TranspositionTable[zobristHash];
-                if (entry.depth <= depth || entry.Expired(age))
-                {
-                    entry.action = action;
-                    entry.eval = eval;
-                    entry.depth = depth;
-                    entry.age = age;
-                }
-            } else {
-                var entry = new TTEntry(action, depth, eval, age);
-                TranspositionTable[zobristHash] = entry;
-            }
-        }
-    }
-
     public static T RandomSelect<T>(List<T> sequence)
     {
         return sequence[rand.Next(sequence.Count())];
     }
 
-    public static XAction TLID_ABMinimax(XBoard state, int limitMS, int q_depth, bool playerIsWhite)
+    public static XAction TLID_ABMinimax(XBoard state, int limitMS, bool playerIsWhite)
     {
-        SetTimer(limitMS);
-        var action = ID_ABMinimax(state, q_depth, playerIsWhite);
-        Console.WriteLine("Search took " + timer.ElapsedMilliseconds + " of " + limitMS);
-        ResetTimer();
-        if (TranspositionTable.ContainsKey(state.zobristHash))
-        {
-            return TranspositionTable[state.zobristHash].action;
-        } else {
-            Console.WriteLine(" ------------------ ERROR: No Time -----------------------");
-            return action;
-        }
-    }
-
-    public static XAction ID_ABMinimax(XBoard state, int q_depth, bool playerIsWhite)
-    {
-        pNumNodes += 1;
+        Stopwatch timer = new Stopwatch();
         int depth = 1;
-        Tuple<XAction, Int64> action_eval = DL_ABMinimax(state, depth, q_depth, playerIsWhite);
+        timer.Start();
+        Tuple<XAction, Int64> action_eval = DL_ABMinimax(state, depth, playerIsWhite);
         if (action_eval.Item2 == WinEval)
         {
+            timer.Stop();
             return action_eval.Item1;
         }
-        while (continueSearch && !OutOfTime())
+        while (timer.ElapsedMilliseconds < limitMS)
         {
             depth += 1;
-            action_eval = DL_ABMinimax(state, depth, q_depth, playerIsWhite);
+            action_eval = DL_ABMinimax(state, depth, playerIsWhite);
             if (action_eval.Item2 == WinEval)
             {
+                timer.Stop();
                 return action_eval.Item1;
             }
         }
+        timer.Stop();
         return action_eval.Item1;
     }
 
-    public static Tuple<XAction, Int64> DL_ABMinimax(XBoard state, int depth, int q_depth, bool playerIsWhite)
+    public static Tuple<XAction, Int64> DL_ABMinimax(XBoard state, int depth, bool playerIsWhite)
     {
-        pNumNodes += 1;
-        //if (TranspositionTable.ContainsKey(state.zobristHash))
-        //{
-        //    var entry = TranspositionTable[state.zobristHash];
-        //    if (entry.depth >= depth && entry.action != null && !entry.Expired(state.NumMoves()))
-        //    {
-        //        Console.WriteLine("Tranposition Table! -------");
-        //        return Tuple.Create(entry.action, entry.eval);
-        //    }
-        //}
-
         Int64 alpha = LoseEval;
         Int64 beta = WinEval;
-        var children = OrderedLegalMoves(state, true);
+        var children = LegalMoves(state);
         var bestChild = children[0];
         state.Apply(bestChild);
-        Int64 bestVal;
-        if (playerIsWhite != state.turnIsWhite)
-        {
-            bestVal = DL_ABMin(state, depth-1, q_depth, playerIsWhite, alpha, beta);
-            alpha = bestVal;
-        } else {
-            bestVal = DL_ABMax(state, depth-1, q_depth, playerIsWhite, alpha, beta);
-            beta = bestVal;
-        }
+        var bestVal = DL_ABMin(state, depth-1, playerIsWhite, alpha, beta);
         Console.Write("(" + ChessEngine.tileToFR(bestChild.srcTile) + "-" + ChessEngine.tileToFR(bestChild.destTile) + " " + bestVal + " " + state.whiteCheck + " " + state.blackCheck + ")\t");
         state.Undo();
-        Int64 val;
+        alpha = bestVal;
         foreach(var child in children.Skip(1))
         {
             state.Apply(child);
-            if (playerIsWhite != state.turnIsWhite)
-            {
-                val = DL_ABMin(state, depth-1, q_depth, playerIsWhite, alpha, beta);
-            } else {
-                val = DL_ABMax(state, depth-1, q_depth, playerIsWhite, alpha, beta);
-            }
+            var val = DL_ABMin(state, depth-1, playerIsWhite, alpha, beta);
             Console.Write("(" + ChessEngine.tileToFR(child.srcTile) + "-" + ChessEngine.tileToFR(child.destTile) + " " + val + " " + state.whiteCheck + " " + state.blackCheck + ")\t");
             state.Undo();
-            if (playerIsWhite == state.turnIsWhite)
+            if (val > bestVal)
             {
-                if (val > bestVal)
-                {
-                    bestChild = child;
-                    bestVal = val;
-                    alpha = bestVal;
-                }
-            } else {
-                if (val < bestVal)
-                {
-                    bestChild = child;
-                    bestVal = val;
-                    beta = bestVal;
-                }
+                bestChild = child;
+                bestVal = val;
+                alpha = bestVal;
             }
         }
         Console.WriteLine("");
 
         Console.WriteLine("Final Evaluation: " + bestVal);
-
-        UpdateTT(state.zobristHash, bestChild, depth, bestVal, state.NumMoves());
         return Tuple.Create(bestChild, bestVal);
     }
 
-    private static Int64 DL_ABMax(XBoard state, int depth, int q_depth, bool maxWhite, Int64 alpha, Int64 beta)
+    private static Int64 DL_ABMax(XBoard state, int depth, bool maxWhite, Int64 alpha, Int64 beta)
     {
-        pNumNodes += 1;
         if (state.stateHistory.ContainsKey(state.zobristHash))
         {
             if (state.stateHistory[state.zobristHash] >= 2)
@@ -368,15 +239,6 @@ Attackers who have multiple targets and threaten king
                 return 0;
             }
         }
-
-        //if (TranspositionTable.ContainsKey(state.zobristHash))
-        //{
-        //    var entry = TranspositionTable[state.zobristHash];
-        //    if (entry.depth >= depth || entry.Expired(state.NumMoves()))
-        //    {
-        //        return entry.eval;
-        //    }
-        //}
 
         var numPieces = BitOps.CountBits(state.pieces);
         if (numPieces == 2)
@@ -392,7 +254,7 @@ Attackers who have multiple targets and threaten king
             }
         }
 
-        if ( !(state.whiteCheck || state.blackCheck) && (depth <= 0)) // Optimization, don't calculate children on noncheckmate
+        if ( !(state.whiteCheck || state.blackCheck) && (depth == 0)) // Optimization, don't calculate children on noncheckmate
         {
             if (state.halfMoveClock >= 100)
             {
@@ -401,7 +263,7 @@ Attackers who have multiple targets and threaten king
             return Heuristic(state, maxWhite);
         }
 
-        var children = OrderedLegalMoves(state, true);
+        var children = LegalMoves(state);
         if (children.Count() == 0) // Is terminal
         {
             if (state.whiteCheck || state.blackCheck) // Check Mate
@@ -410,9 +272,6 @@ Attackers who have multiple targets and threaten king
             } else { // Stalemate
                 return 0;
             }
-        } else if (children.Count() == 1) // Singular Extensions
-        {
-            depth += 1;
         }
 
         if (state.halfMoveClock >= 100)
@@ -420,81 +279,51 @@ Attackers who have multiple targets and threaten king
             return 0;
         }
 
-        var quiet = !(state.whiteCheck || state.blackCheck || state.LastActionAttack());
+        if (depth == 0 && (state.whiteCheck || state.blackCheck))
+        {
+            depth = 1;
+        }
 
-        if (depth <= 0 && (q_depth <= 0 || quiet))
+        if (depth == 0)
         {
             return Heuristic(state, maxWhite);
         }
 
-        if (!continueSearch || OutOfTime())
-        {
-            if (TranspositionTable.ContainsKey(state.zobristHash))
-            {
-                return TranspositionTable[state.zobristHash].eval;
-            } else {
-                return Heuristic(state, maxWhite);
-            }
-        }
-
-        if (depth <= 0)
-        {
-            // If we are here, this state is nonquiecessent.
-            // If we += 1 on depth, we get same behaviour but better transposition table usage
-            depth += 1;
-            q_depth -= 1;
-        }
-
         state.Apply(children[0]);
-        var maxH = DL_ABMin(state, depth-1, q_depth, maxWhite, alpha, beta);
+        var maxH = DL_ABMin(state, depth-1, maxWhite, alpha, beta);
         state.Undo();
         if (maxH > alpha)
         {
             alpha = maxH;
             if (maxH >= beta)
             {
-                if (!HistoryTable.ContainsKey(children[0]))
-                {
-                    HistoryTable[children[0]] = 0;
-                }
-                HistoryTable[children[0]] += (2 << depth) * q_depth;
-                UpdateTT(state.zobristHash, children[0], depth, maxH, state.NumMoves());
                 return beta;
             }
         }
 
-        var bestAction = children[0];
         foreach(var child in children.Skip(1))
         {
             state.Apply(child);
-            var hVal = DL_ABMin(state, depth-1, q_depth, maxWhite, alpha, beta);
+            var hVal = DL_ABMin(state, depth-1, maxWhite, alpha, beta);
             state.Undo();
 
             if (hVal > maxH)
             {
                 maxH = hVal;
-                bestAction = child;
                 if (maxH > alpha)
                 {
                     alpha = maxH;
                     if (maxH >= beta)
                     {
-                        if (!HistoryTable.ContainsKey(child))
-                        {
-                            HistoryTable[child] = 0;
-                        }
-                        HistoryTable[child] += (2 << depth) * q_depth;
-                        UpdateTT(state.zobristHash, child, depth, maxH, state.NumMoves());
                         return beta;
                     }
                 }
             }
         }
-        UpdateTT(state.zobristHash, bestAction, depth, maxH, state.NumMoves());
         return maxH;
     }
 
-    private static Int64 DL_ABMin(XBoard state, int depth, int q_depth, bool maxWhite, Int64 alpha, Int64 beta)
+    private static Int64 DL_ABMin(XBoard state, int depth, bool maxWhite, Int64 alpha, Int64 beta)
     {
         if (state.stateHistory.ContainsKey(state.zobristHash))
         {
@@ -503,15 +332,6 @@ Attackers who have multiple targets and threaten king
                 return 0;
             }
         }
-
-        //if (TranspositionTable.ContainsKey(state.zobristHash))
-        //{
-        //    var entry = TranspositionTable[state.zobristHash];
-        //    if (entry.depth >= depth || entry.Expired(state.NumMoves()))
-        //    {
-        //        return entry.eval;
-        //    }
-        //}
 
         var numPieces = BitOps.CountBits(state.pieces);
         if (numPieces == 2)
@@ -527,7 +347,7 @@ Attackers who have multiple targets and threaten king
             }
         }
 
-        if ( !(state.whiteCheck || state.blackCheck) && (depth <= 0)) // Optimization, don't calculate children on noncheckmate
+        if ( !(state.whiteCheck || state.blackCheck) && (depth == 0)) // Optimization, don't calculate children on noncheckmate
         {
             if (state.halfMoveClock >= 100)
             {
@@ -536,7 +356,7 @@ Attackers who have multiple targets and threaten king
             return Heuristic(state, maxWhite);
         }
 
-        var children = OrderedLegalMoves(state, true);
+        var children = LegalMoves(state);
         if (children.Count() == 0) // Is terminal
         {
             if (state.whiteCheck || state.blackCheck) // Check Mate
@@ -545,9 +365,6 @@ Attackers who have multiple targets and threaten king
             } else { // Stalemate
                 return 0;
             }
-        } else if (children.Count() == 1) // Singular Extensions
-        {
-            depth += 1;
         }
 
         if (state.halfMoveClock >= 100)
@@ -555,94 +372,48 @@ Attackers who have multiple targets and threaten king
             return 0;
         }
 
-        var quiet = !(state.whiteCheck || state.blackCheck || state.LastActionAttack());
+        if (depth == 0 && (state.whiteCheck || state.blackCheck))
+        {
+            depth = 1;
+        }
 
-        if (depth <= 0 && (q_depth <= 0 || quiet))
+        if (depth == 0)
         {
             return Heuristic(state, maxWhite);
         }
 
-        if (!continueSearch || OutOfTime())
-        {
-            if (TranspositionTable.ContainsKey(state.zobristHash))
-            {
-                return TranspositionTable[state.zobristHash].eval;
-            } else {
-                return Heuristic(state, maxWhite);
-            }
-        }
-
-        if (depth <= 0)
-        {
-            // If we are here, this state is nonquiecessent.
-            // If we += 1 on depth, we get same behaviour but better transposition table usage
-            depth += 1;
-            q_depth -= 1;
-        }
-
         state.Apply(children[0]);
-        var minH = DL_ABMax(state, depth-1, q_depth, maxWhite, alpha, beta);
+        var minH = DL_ABMax(state, depth-1, maxWhite, alpha, beta);
         state.Undo();
         if (minH < beta)
         {
             beta = minH;
             if (minH < alpha)
             {
-                if (!HistoryTable.ContainsKey(children[0]))
-                {
-                    HistoryTable[children[0]] = 0;
-                }
-                HistoryTable[children[0]] += (2 << depth) * q_depth;
-                UpdateTT(state.zobristHash, children[0], depth, minH, state.NumMoves());
                 return alpha;
             }
         }
 
-        var bestAction = children[0];
         foreach(var child in children.Skip(1))
         {
             state.Apply(child);
-            var hVal = DL_ABMax(state, depth-1, q_depth, maxWhite, alpha, beta);
+            var hVal = DL_ABMax(state, depth-1, maxWhite, alpha, beta);
             state.Undo();
 
             if (hVal < minH)
             {
                 minH = hVal;
-                bestAction = child;
                 if (minH < beta)
                 {
                     beta = minH;
                     if (minH < alpha)
                     {
-                        if (!HistoryTable.ContainsKey(child))
-                        {
-                            HistoryTable[child] = 0;
-                        }
-                        HistoryTable[child] += (2 << depth) * q_depth;
-                        UpdateTT(state.zobristHash, child, depth, minH, state.NumMoves());
                         return alpha;
                     }
                 }
             }
         }
-        UpdateTT(state.zobristHash, bestAction, depth, minH, state.NumMoves());
         return minH;
-    }
-
-    private static List<XAction> OrderedLegalMoves(XBoard state, bool fullBranch)
-    {
-        Func<XAction, bool> CheckPV = n => false;
-        if (TranspositionTable.ContainsKey(state.zobristHash) && TranspositionTable[state.zobristHash].action != null)
-        {
-            CheckPV = n => !n.Equals(TranspositionTable[state.zobristHash].action);
-        }
-        return
-            ( !fullBranch && OpeningBook.Table.ContainsKey(state.zobristHash) ? OpeningBook.Table[state.zobristHash] : LegalMoves(state) )
-            .OrderBy(n => CheckPV(n))
-            .ThenBy(n => n.attackType)
-            .ThenByDescending(n => HistoryTable.GetValueOrDefault(n, 0))
-            .ThenBy(n => rand.Next())
-            .ToList();
     }
 
     public static XAction HeuristicSelect(XBoard state, List<XAction> sequence, bool playerIsWhite)
@@ -673,113 +444,6 @@ Attackers who have multiple targets and threaten king
 
         Console.WriteLine("Evaluation: " + bestH);
         return RandomSelect(bestActions);
-    }
-
-    public static Int64 _Heuristic(XBoard state, bool playerIsWhite)
-    {
-        UInt64 whiteMaterial = 0;
-        UInt64 whiteStatic = 0;
-        UInt64 blackMaterial = 0;
-        UInt64 blackStatic = 0;
-        UInt64 pieces;
-        UInt64 piece;
-        {
-            UInt64 whiteNumPawns = BitOps.CountBits(state.whitePawns);
-            UInt64 blackNumPawns = BitOps.CountBits(state.blackPawns);
-            whiteStatic += 3 * (whiteNumPawns - blackNumPawns);
-            blackStatic += 3 * (blackNumPawns - whiteNumPawns);
-            { // White Potential
-                pieces = state.whitePawns;
-                while (pieces != 0)
-                {
-                    piece = BitOps.MSB(pieces);
-                    pieces -= piece;
-    
-                    whiteStatic += PawnSquareTable[64 - BitOps.bbIndex(piece)];
-                }
-                whiteStatic += KingSquareTable[64 - BitOps.bbIndex(state.whiteKing)];
-    
-                whiteMaterial += 10 * whiteNumPawns;
-                whiteMaterial += 50 * BitOps.CountBits(state.whiteRooks);
-                whiteMaterial += 31 * BitOps.CountBits(state.whiteKnights);
-                whiteMaterial += 33 * BitOps.CountBits(state.whiteBishops);
-                whiteMaterial += 95 * BitOps.CountBits(state.whiteQueens);
-                if (state.whiteQueens != 0)
-                {
-                    whiteStatic += 50;
-                }
-                if (state.whiteCastleKS)
-                {
-                    whiteStatic += 15;
-                }
-                if (state.whiteCastleQS)
-                {
-                    whiteStatic += 15;
-                }
-                if (!state.whiteCastleKS && !state.whiteCastleQS && state.stateHistory.Count() < CastleTurnCutOff)
-                {
-                    if (state.whiteKing == whiteKSDest || state.whiteKing == whiteQSDest || ((state.whiteRooks & (whiteKSRookDest | whiteQSRookDest)) != 0))
-                    {
-                        whiteStatic += 35;
-                    }
-                }
-                if (BitOps.CountBits(state.whiteBishops) >= 2) {
-                    whiteMaterial += 50;
-                }
-            } // End White Potential
-            { // Black Potential
-                pieces = state.blackPawns;
-                while (pieces != 0)
-                {
-                    piece = BitOps.MSB(pieces);
-                    pieces -= piece;
-    
-                    blackStatic += PawnSquareTable[BitOps.bbIndex(piece) - 1];
-                }
-                blackStatic += KingSquareTable[BitOps.bbIndex(state.blackKing) - 1];
-    
-                blackMaterial += 10 * blackNumPawns;
-                blackMaterial += 50 * BitOps.CountBits(state.blackRooks);
-                blackMaterial += 31 * BitOps.CountBits(state.blackKnights);
-                blackMaterial += 33 * BitOps.CountBits(state.blackBishops);
-                blackMaterial += 95 * BitOps.CountBits(state.blackQueens);
-                if (state.blackQueens != 0)
-                {
-                    blackStatic += 50;
-                }
-                if (state.blackCastleKS)
-                {
-                    blackStatic += 15;
-                }
-                if (state.blackCastleQS)
-                {
-                    blackStatic += 15;
-                }
-                if (!state.blackCastleKS && !state.blackCastleQS && state.stateHistory.Count() < CastleTurnCutOff)
-                {
-                    if (state.blackKing == blackKSDest || state.blackKing == blackQSDest || ((state.blackRooks & (blackKSRookDest | blackQSRookDest)) != 0))
-                    {
-                        blackStatic += 35;
-                    }
-                }
-                if (BitOps.CountBits(state.blackBishops) >= 2) {
-                    blackMaterial += 50;
-                }
-            } // End Black Potential
-        }
-
-        UInt64 whitePotential = 5 * whiteMaterial + 2 * whiteStatic;
-        UInt64 blackPotential = 5 * blackMaterial + 2 * blackStatic;
-
-        Int64 eval;
-        if (playerIsWhite)
-        {
-            eval = (Int64)(whitePotential - blackPotential);
-        } else {
-            eval = (Int64)(blackPotential - whitePotential);
-        }
-        UpdateTT(state.LastZobristHash(), null, 0, eval, state.NumMoves());
-        return eval;
     }
 
     public static Int64 Heuristic(XBoard state, bool playerIsWhite)
@@ -1470,14 +1134,12 @@ Attackers who have multiple targets and threaten king
         whitePosition += defendedBonus * BitOps.CountBits(defendedWhitePositions) - threatenedPenalty * BitOps.CountBits(threatenedWhitePositions) * turnWhitePenalty;
         blackPosition += defendedBonus * BitOps.CountBits(defendedBlackPositions) - threatenedPenalty * BitOps.CountBits(threatenedBlackPositions) * turnBlackPenalty;
         
-        Int64 eval;
         if (playerIsWhite)
         {
-            eval = (Int64)(potentialWeight*(whitePotential - blackPotential) + positionWeight*(whitePosition - blackPosition));
-        } else {
-            eval = (Int64)(potentialWeight*(blackPotential - whitePotential) + positionWeight*(blackPosition - whitePosition));
+            return (Int64)(potentialWeight*(whitePotential - blackPotential) + positionWeight*(whitePosition - blackPosition));
         }
-        UpdateTT(state.LastZobristHash(), null, 0, eval, state.NumMoves());
-        return eval;
+        {
+            return (Int64)(potentialWeight*(blackPotential - whitePotential) + positionWeight*(blackPosition - whitePosition));
+        }
     }
 }

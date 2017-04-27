@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Diagnostics;
 
 namespace Joueur.cs.Games.Chess
 {
@@ -57,10 +56,6 @@ namespace Joueur.cs.Games.Chess
         {
             base.Start();
             this.engine = new ChessEngine(this.Game.Fen, this.Player.Color == "White");
-            if (this.Player.Color != "White")
-            {
-                this.engine.Ponder();
-            }
         }
 
         /// <summary>
@@ -85,7 +80,6 @@ namespace Joueur.cs.Games.Chess
         public override void Ended(bool won, string reason)
         {
             base.Ended(won, reason);
-            this.engine.StopPonder();
         }
 
 
@@ -99,11 +93,6 @@ namespace Joueur.cs.Games.Chess
         {
             Console.WriteLine("----------------------------------------------------");
             Console.WriteLine("Time Remaining: " + this.Player.TimeRemaining + " ns");
-            var timer = new Stopwatch();
-            timer.Start();
-            this.engine.StopPonder();
-            timer.Stop();
-            Console.WriteLine("Time to stop pondering: " + timer.ElapsedMilliseconds + " ms");
             if (this.Game.Moves.Count > 0)
             {
                 var lastMove = this.Game.Moves.Last();
@@ -120,14 +109,12 @@ namespace Joueur.cs.Games.Chess
             this.engine.Print();
             var moveStrings = this.engine.MakeMove();
             Console.WriteLine("Move: " + moveStrings.Item1 + "    " + moveStrings.Item2);
-            Console.WriteLine("debug: " + moveStrings.Item1);
             var piece = this.Player.Pieces.First(p => (p.File + p.Rank) == moveStrings.Item1);
             piece.Move( moveStrings.Item2[0].ToString(),
                         (int)(moveStrings.Item2[1] - '0'),
                         moveStrings.Item3.Replace("None", "")
             );
 
-            this.engine.Ponder();
             return true;
         }
 

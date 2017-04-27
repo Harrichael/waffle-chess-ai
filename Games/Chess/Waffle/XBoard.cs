@@ -49,11 +49,6 @@ public class XBoard
         this.actionUndoHistory = new Stack<XActionUndoData>();
     }
 
-    public int NumMoves()
-    {
-        return actionHistory.Count();
-    }
-
     public void updatePieces()
     {
         this.whitePieces = ( this.whitePawns   | this.whiteRooks   |
@@ -131,34 +126,6 @@ public class XBoard
     public XBoard Copy()
     {
         return (XBoard)this.MemberwiseClone();
-    }
-
-    public UInt64 LastZobristHash()
-    {
-        if (this.actionUndoHistory.Count() > 0)
-        {
-            return this.actionUndoHistory.Peek().zobristHash;
-        } else {
-            return 0;
-        }
-    }
-
-    public bool LastActionAttack()
-    {
-        if (this.actionHistory.Count() > 0)
-        {
-            return this.actionHistory.Peek().attackType != PieceType.None;
-        } else {
-            return false;
-        }
-    }
-
-    public void UndoAll()
-    {
-        while (this.actionHistory.Count() > 0)
-        {
-            this.Undo();
-        }
     }
 
     public void Apply(XAction action)

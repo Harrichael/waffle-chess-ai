@@ -66,7 +66,7 @@ public static class ChessRules
     public static readonly UInt64 blackQSRookDest  = 0x1000000000000000;
 
 
-    public static IEnumerable<XAction> LegalMoves(XBoard state)
+    public static List<XAction> LegalMoves(XBoard state)
     {
         var neighbors = new List<XAction>();
         var invalidNeighbors = new HashSet<XAction>();
@@ -440,7 +440,7 @@ public static class ChessRules
             }
         }
 
-        return neighbors.Where(n => !invalidNeighbors.Contains(n));
+        return neighbors.Where(n => !invalidNeighbors.Contains(n)).OrderBy(n => n.attackType).ThenBy(n => rand.Next()).ToList();
     } // End LegalMoves
 
     public static UInt64 Threats(XBoard state, UInt64 tile, bool whiteAttackers)
