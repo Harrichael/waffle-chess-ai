@@ -26,7 +26,7 @@ public class TTEntry
 
     public bool Expired(int age)
     {
-        return this.age + 100000 < age;
+        return this.age + 3 < age;
     }
 }
 
@@ -49,12 +49,12 @@ Attackers who have multiple targets and threaten king
     static readonly byte positionWeight = 0;
 
     /* Material */
-    static readonly byte QueenMaterial  = 180;
-    static readonly byte RookMaterial   = 85;
-    static readonly byte BishopMaterial = 70;
-    static readonly byte KnightMaterial = 60;
-    static readonly byte PawnMaterial   = 12;
-    static readonly byte BishopPairBonus = 40;
+    static readonly byte QueenMaterial  = 95;
+    static readonly byte RookMaterial   = 55;
+    static readonly byte BishopMaterial = 33;
+    static readonly byte KnightMaterial = 31;
+    static readonly byte PawnMaterial   = 10;
+    static readonly byte BishopPairBonus = 50;
 
     /* Static */
     static readonly uint QueenExistenceBonus = 500;
@@ -298,9 +298,9 @@ Attackers who have multiple targets and threaten king
         if (TranspositionTable.ContainsKey(state.zobristHash))
         {
             var entry = TranspositionTable[state.zobristHash];
-            if (entry.depth >= depth && entry.action != null && !entry.Expired(pNumNodes))
+            if (entry.depth >= depth && entry.action != null && !entry.Expired(state.NumMoves()))
             {
-                Console.WriteLine("Transposition Table Age: " + pNumNodes);
+                Console.WriteLine("Tranposition Table! -------");
                 return Tuple.Create(entry.action, entry.eval);
             }
         }
@@ -372,7 +372,7 @@ Attackers who have multiple targets and threaten king
         if (TranspositionTable.ContainsKey(state.zobristHash))
         {
             var entry = TranspositionTable[state.zobristHash];
-            if (entry.depth >= depth || entry.Expired(pNumNodes))
+            if (entry.depth >= depth || entry.Expired(state.NumMoves()))
             {
                 return entry.eval;
             }
@@ -507,7 +507,7 @@ Attackers who have multiple targets and threaten king
         if (TranspositionTable.ContainsKey(state.zobristHash))
         {
             var entry = TranspositionTable[state.zobristHash];
-            if (entry.depth >= depth || entry.Expired(pNumNodes))
+            if (entry.depth >= depth || entry.Expired(state.NumMoves()))
             {
                 return entry.eval;
             }
