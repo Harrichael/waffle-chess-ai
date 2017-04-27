@@ -43,10 +43,10 @@ Attackers who have multiple targets and threaten king
     private static Int64 LoseEval = -WinEval;
 
     private static Random rand = new Random();
-    static readonly byte potentialWeight = 2;
+    static readonly byte potentialWeight = 5;
     static readonly byte materialWeight = 5;
     static readonly byte staticWeight = 3;
-    static readonly byte positionWeight = 0;
+    static readonly byte positionWeight = 1;
 
     /* Material */
     static readonly byte QueenMaterial  = 95;
@@ -295,19 +295,19 @@ Attackers who have multiple targets and threaten king
     public static Tuple<XAction, Int64> DL_ABMinimax(XBoard state, int depth, int q_depth, bool playerIsWhite)
     {
         pNumNodes += 1;
-        if (TranspositionTable.ContainsKey(state.zobristHash))
-        {
-            var entry = TranspositionTable[state.zobristHash];
-            if (entry.depth >= depth && entry.action != null && !entry.Expired(state.NumMoves()))
-            {
-                Console.WriteLine("Tranposition Table! -------");
-                return Tuple.Create(entry.action, entry.eval);
-            }
-        }
+        //if (TranspositionTable.ContainsKey(state.zobristHash))
+        //{
+        //    var entry = TranspositionTable[state.zobristHash];
+        //    if (entry.depth >= depth && entry.action != null && !entry.Expired(state.NumMoves()))
+        //    {
+        //        Console.WriteLine("Tranposition Table! -------");
+        //        return Tuple.Create(entry.action, entry.eval);
+        //    }
+        //}
 
         Int64 alpha = LoseEval;
         Int64 beta = WinEval;
-        var children = OrderedLegalMoves(state, false);
+        var children = OrderedLegalMoves(state, true);
         var bestChild = children[0];
         state.Apply(bestChild);
         Int64 bestVal;
@@ -354,7 +354,7 @@ Attackers who have multiple targets and threaten king
 
         Console.WriteLine("Final Evaluation: " + bestVal);
 
-        UpdateTT(state.zobristHash, bestChild, depth, bestVal, pNumNodes);
+        UpdateTT(state.zobristHash, bestChild, depth, bestVal, state.NumMoves());
         return Tuple.Create(bestChild, bestVal);
     }
 
@@ -369,14 +369,14 @@ Attackers who have multiple targets and threaten king
             }
         }
 
-        if (TranspositionTable.ContainsKey(state.zobristHash))
-        {
-            var entry = TranspositionTable[state.zobristHash];
-            if (entry.depth >= depth || entry.Expired(state.NumMoves()))
-            {
-                return entry.eval;
-            }
-        }
+        //if (TranspositionTable.ContainsKey(state.zobristHash))
+        //{
+        //    var entry = TranspositionTable[state.zobristHash];
+        //    if (entry.depth >= depth || entry.Expired(state.NumMoves()))
+        //    {
+        //        return entry.eval;
+        //    }
+        //}
 
         var numPieces = BitOps.CountBits(state.pieces);
         if (numPieces == 2)
@@ -401,7 +401,7 @@ Attackers who have multiple targets and threaten king
             return Heuristic(state, maxWhite);
         }
 
-        var children = OrderedLegalMoves(state, false);
+        var children = OrderedLegalMoves(state, true);
         if (children.Count() == 0) // Is terminal
         {
             if (state.whiteCheck || state.blackCheck) // Check Mate
@@ -458,7 +458,7 @@ Attackers who have multiple targets and threaten king
                     HistoryTable[children[0]] = 0;
                 }
                 HistoryTable[children[0]] += (2 << depth) * q_depth;
-                UpdateTT(state.zobristHash, children[0], depth, maxH, pNumNodes);
+                UpdateTT(state.zobristHash, children[0], depth, maxH, state.NumMoves());
                 return beta;
             }
         }
@@ -484,13 +484,13 @@ Attackers who have multiple targets and threaten king
                             HistoryTable[child] = 0;
                         }
                         HistoryTable[child] += (2 << depth) * q_depth;
-                        UpdateTT(state.zobristHash, child, depth, maxH, pNumNodes);
+                        UpdateTT(state.zobristHash, child, depth, maxH, state.NumMoves());
                         return beta;
                     }
                 }
             }
         }
-        UpdateTT(state.zobristHash, bestAction, depth, maxH, pNumNodes);
+        UpdateTT(state.zobristHash, bestAction, depth, maxH, state.NumMoves());
         return maxH;
     }
 
@@ -504,14 +504,14 @@ Attackers who have multiple targets and threaten king
             }
         }
 
-        if (TranspositionTable.ContainsKey(state.zobristHash))
-        {
-            var entry = TranspositionTable[state.zobristHash];
-            if (entry.depth >= depth || entry.Expired(state.NumMoves()))
-            {
-                return entry.eval;
-            }
-        }
+        //if (TranspositionTable.ContainsKey(state.zobristHash))
+        //{
+        //    var entry = TranspositionTable[state.zobristHash];
+        //    if (entry.depth >= depth || entry.Expired(state.NumMoves()))
+        //    {
+        //        return entry.eval;
+        //    }
+        //}
 
         var numPieces = BitOps.CountBits(state.pieces);
         if (numPieces == 2)
@@ -536,7 +536,7 @@ Attackers who have multiple targets and threaten king
             return Heuristic(state, maxWhite);
         }
 
-        var children = OrderedLegalMoves(state, false);
+        var children = OrderedLegalMoves(state, true);
         if (children.Count() == 0) // Is terminal
         {
             if (state.whiteCheck || state.blackCheck) // Check Mate
@@ -593,7 +593,7 @@ Attackers who have multiple targets and threaten king
                     HistoryTable[children[0]] = 0;
                 }
                 HistoryTable[children[0]] += (2 << depth) * q_depth;
-                UpdateTT(state.zobristHash, children[0], depth, minH, pNumNodes);
+                UpdateTT(state.zobristHash, children[0], depth, minH, state.NumMoves());
                 return alpha;
             }
         }
@@ -619,13 +619,13 @@ Attackers who have multiple targets and threaten king
                             HistoryTable[child] = 0;
                         }
                         HistoryTable[child] += (2 << depth) * q_depth;
-                        UpdateTT(state.zobristHash, child, depth, minH, pNumNodes);
+                        UpdateTT(state.zobristHash, child, depth, minH, state.NumMoves());
                         return alpha;
                     }
                 }
             }
         }
-        UpdateTT(state.zobristHash, bestAction, depth, minH, pNumNodes);
+        UpdateTT(state.zobristHash, bestAction, depth, minH, state.NumMoves());
         return minH;
     }
 
@@ -675,7 +675,7 @@ Attackers who have multiple targets and threaten king
         return RandomSelect(bestActions);
     }
 
-    public static Int64 Heuristic(XBoard state, bool playerIsWhite)
+    public static Int64 _Heuristic(XBoard state, bool playerIsWhite)
     {
         UInt64 whiteMaterial = 0;
         UInt64 whiteStatic = 0;
@@ -778,11 +778,11 @@ Attackers who have multiple targets and threaten king
         } else {
             eval = (Int64)(blackPotential - whitePotential);
         }
-        UpdateTT(state.LastZobristHash(), null, 0, eval, pNumNodes);
+        UpdateTT(state.LastZobristHash(), null, 0, eval, state.NumMoves());
         return eval;
     }
 
-    public static Int64 _Heuristic(XBoard state, bool playerIsWhite)
+    public static Int64 Heuristic(XBoard state, bool playerIsWhite)
     {
         byte turnWhitePenalty = (byte)((state.turnIsWhite) ? turnSafeMult : turnThreatMult);
         byte turnBlackPenalty = (byte)((state.turnIsWhite) ? turnThreatMult : turnSafeMult);
@@ -1477,7 +1477,7 @@ Attackers who have multiple targets and threaten king
         } else {
             eval = (Int64)(potentialWeight*(blackPotential - whitePotential) + positionWeight*(blackPosition - whitePosition));
         }
-        UpdateTT(state.LastZobristHash(), null, 0, eval, pNumNodes);
+        UpdateTT(state.LastZobristHash(), null, 0, eval, state.NumMoves());
         return eval;
     }
 }
