@@ -107,7 +107,8 @@ namespace Joueur.cs.Games.Chess
                 this.engine.OpponentMove(fromFR, toFR, promote);
             }
             this.engine.Print();
-            var moveStrings = this.engine.MakeMove();
+            int time = Math.Max( Math.Min( (int)Convert.ToInt32(this.Player.TimeRemaining/1000000) / Math.Max(120, this.Game.Moves.Count + 20), 5000), 250);
+            var moveStrings = this.engine.MakeMove(time);
             Console.WriteLine("Move: " + moveStrings.Item1 + "    " + moveStrings.Item2);
             var piece = this.Player.Pieces.First(p => (p.File + p.Rank) == moveStrings.Item1);
             piece.Move( moveStrings.Item2[0].ToString(),

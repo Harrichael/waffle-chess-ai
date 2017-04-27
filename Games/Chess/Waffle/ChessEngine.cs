@@ -174,7 +174,7 @@ public class ChessEngine
         this.board.Apply(action);
     } // End Opponent Move
 
-    public Tuple<string, string, string> MakeMove()
+    public Tuple<string, string, string> MakeMove(int time)
     {
         Console.Write("Num Legal Moves: ");
         var moves = ChessRules.LegalMoves(this.board);
@@ -183,7 +183,7 @@ public class ChessEngine
         Console.Write("50 Move Counter: ");
         Console.WriteLine(this.board.halfMoveClock);
 
-        var action = ChessStrategy.TLID_ABMinimax(this.board, 250, this.aiIsWhite);
+        var action = ChessStrategy.TLID_ABMinimax(this.board, time, this.aiIsWhite);
 
         var zobrist = this.board.zobristHash;
         this.board.Apply(action);

@@ -73,6 +73,17 @@ Attackers who have multiple targets and threaten king
         25, 30, 20, 10, 10, 20, 30, 25
     };
 
+    static readonly byte[] KingSquareEndTable = {
+        0 , 10, 20, 30, 30, 20, 10, 0 ,
+        10, 20, 30, 40, 40, 30, 20, 10,
+        20, 30, 40, 50, 50, 40, 30, 20,
+        30, 40, 50, 55, 55, 50, 40, 30,
+        30, 40, 50, 55, 55, 50, 40, 30,
+        20, 30, 40, 50, 50, 40, 30, 20,
+        10, 20, 30, 40, 40, 30, 20, 10,
+        0 , 10, 20, 30, 30, 20, 10, 0
+    };
+
     /* Lines of Attack */
     static readonly byte threatenedPenalty = 50;
     static readonly byte defendedBonus = 30;
@@ -480,7 +491,12 @@ Attackers who have multiple targets and threaten king
     
                     whiteStatic += RookSquareTable[64 - BitOps.bbIndex(piece)];
                 }
-                whiteStatic += KingSquareTable[64 - BitOps.bbIndex(state.whiteKing)];
+                if (BitOps.CountBits(pieces) <= 12)
+                {
+                    whiteStatic += KingSquareEndTable[64 - BitOps.bbIndex(state.whiteKing)];
+                } else {
+                    whiteStatic += KingSquareTable[64 - BitOps.bbIndex(state.whiteKing)];
+                }
     
                 whiteMaterial += PawnMaterial * whiteNumPawns;
                 whiteMaterial += RookMaterial * BitOps.CountBits(state.whiteRooks);
@@ -527,7 +543,12 @@ Attackers who have multiple targets and threaten king
     
                     blackStatic += RookSquareTable[BitOps.bbIndex(piece) - 1];
                 }
-                blackStatic += KingSquareTable[BitOps.bbIndex(state.blackKing) - 1];
+                if (BitOps.CountBits(pieces) <= 12)
+                {
+                    blackStatic += KingSquareEndTable[BitOps.bbIndex(state.blackKing) - 1];
+                } else {
+                    blackStatic += KingSquareTable[BitOps.bbIndex(state.blackKing) - 1];
+                }
     
                 blackMaterial += PawnMaterial * blackNumPawns;
                 blackMaterial += RookMaterial * BitOps.CountBits(state.blackRooks);
